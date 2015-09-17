@@ -1,30 +1,13 @@
-# TopicModeling
+# coding: utf-8
+from nlp.topic_model import LDA, LSA, NMF
 
-A python program for topic modeling.
+__author__ = "Adrien Guille"
+__email__ = "adrien.guille@univ-lyon2.fr"
 
-## Topic models
-
-- Latent Dirichlet Allocation (LDA)
-- Latent Semantic Analysis (LSA)
-- Non-negative Matrix Factorization (NMF)
-
-## Dependencies
-
-- NLTK
-- Scikit-Learn
-- Gensim
-
-## Documentation
-
-- Read data from a text file:
-```
 with open('data/test.txt') as f:
     documents = f.read().splitlines()
 print 'corpus size:', len(documents)
-```
 
-- Vectorize documents and infer topics with LDA, LSA or NMF:
-```
 lda = LDA(raw_data=documents, language='french')
 print 'vocabulary size:', lda.get_vocabulary_size()
 lda.infer_topics(num_topics=15)
@@ -40,4 +23,3 @@ nmf = NMF(vectorized_data=lda)
 nmf.infer_topics(documents)
 print '\nNMF:'
 nmf.print_topics(num_words=10)
-```

@@ -30,14 +30,16 @@ print 'vocabulary size:', lda.get_vocabulary_size()
 lda.infer_topics(num_topics=15)
 print '\nLDA:'
 lda.print_topics(num_words=10)
-
+```
+```
 lsa = LSA(vectorized_data=lda)
 lsa.infer_topics(num_topics=15)
 print '\nLSA:'
 lsa.print_topics(num_words=10)
-
+```
+```
 nmf = NMF(vectorized_data=lda)
-nmf.infer_topics(documents)
+nmf.infer_topics(num_topics=15)
 print '\nNMF:'
 nmf.print_topics(num_words=10)
 ```

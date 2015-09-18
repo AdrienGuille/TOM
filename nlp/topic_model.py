@@ -45,12 +45,15 @@ class TopicModel(object):
     def infer_topics(self, num_topics=10):
         pass
 
-    def print_topics(self, num_words=10):
+    def print_topics(self, num_words=10, display_weights=False):
         count = 0
         for topic in self.word_topic_matrix:
             word_list = []
             for weighted_word in topic:
-                word_list.append(weighted_word[1])
+                if display_weights:
+                    word_list.append(weighted_word[1]+' ('+str(round(weighted_word[0], 4))+')')
+                else:
+                    word_list.append(weighted_word[1])
                 if len(word_list) == num_words:
                     break
             print 'topic', count, ': ', ' '.join(word_list)

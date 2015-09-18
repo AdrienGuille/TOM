@@ -12,7 +12,7 @@ lda = LatentDirichletAllocation(raw_data=documents, language='french')
 print 'vocabulary size:', lda.get_vocabulary_size()
 lda.infer_topics(num_topics=15)
 print '\nLDA:'
-lda.print_topics(num_words=10)
+lda.print_topics(num_words=10, display_weights=True)
 print '\nTopic distribution for document id=1:'
 lda.print_topics_for_document(1)
 

@@ -56,7 +56,7 @@ class TopicModel(object):
             count += 1
 
 
-class LDA(TopicModel):
+class LatentDirichletAllocation(TopicModel):
 
     def infer_topics(self, num_topics=10):
         lda = models.LdaModel(corpus=self.gensim_corpus,
@@ -68,7 +68,7 @@ class LDA(TopicModel):
                                       formatted=False)
 
 
-class LSA(TopicModel):
+class LatentSemanticAnalysis(TopicModel):
 
     def infer_topics(self, num_topics=10):
         lsa = models.LsiModel(corpus=self.gensim_corpus,
@@ -79,9 +79,9 @@ class LSA(TopicModel):
                                       formatted=False)
 
 
-class NMF(TopicModel):
+class NonNegativeMatrixFactorization(TopicModel):
 
-    def infer_topics(self, documents, num_topics=10):
+    def infer_topics(self, num_topics=10):
         nmf = NMF(n_components=num_topics, random_state=1).fit(self.sklearn_corpus)
         feature_names = self.vectorizer.get_feature_names()
         self.topics = []

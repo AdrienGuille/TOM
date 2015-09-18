@@ -35,7 +35,8 @@ class TopicModel(object):
             self.sklearn_corpus = vectorized_data.sklearn_corpus
             self.gensim_corpus = vectorized_data.gensim_corpus
             self.vocabulary = vectorized_data.vocabulary
-            self.topics = None
+        self.topic_document_matrix = None
+        self.word_topic_matrix = None
 
     def get_vocabulary_size(self):
         return len(self.vocabulary)
@@ -46,13 +47,21 @@ class TopicModel(object):
 
     def print_topics(self, num_words=10):
         count = 0
-        for topic in self.topics:
+        for topic in self.word_topic_matrix:
             word_list = []
             for weighted_word in topic:
                 word_list.append(weighted_word[1])
                 if len(word_list) == num_words:
                     break
             print 'topic', count, ': ', ' '.join(word_list)
+            count += 1
+
+    def print_topics_for_document(self, doc_id):
+        count = 0
+        for doc in self.topic_document_matrix:
+            if count == doc_id:
+                print doc
+                break
             count += 1
 
 
@@ -63,9 +72,10 @@ class LatentDirichletAllocation(TopicModel):
                               id2word=self.vocabulary,
                               iterations=3000,
                               num_topics=num_topics)
-        self.topics = lda.show_topics(num_topics=num_topics,
-                                      num_words=len(self.vocabulary),
-                                      formatted=False)
+        self.word_topic_matrix = lda.show_topics(num_topics=num_topics,
+                                                 num_words=len(self.vocabulary),
+                                                 formatted=False)
+        self.topic_document_matrix = lda[self.gensim_corpus]
 
 
 class LatentSemanticAnalysis(TopicModel):
@@ -74,17 +84,20 @@ class LatentSemanticAnalysis(TopicModel):
         lsa = models.LsiModel(corpus=self.gensim_corpus,
                               id2word=self.vocabulary,
                               num_topics=num_topics)
-        self.topics = lsa.show_topics(num_topics=num_topics,
-                                      num_words=len(self.vocabulary),
-                                      formatted=False)
+        self.word_topic_matrix = lsa.show_topics(num_topics=num_topics,
+                                                 num_words=len(self.vocabulary),
+                                                 formatted=False)
+        self.topic_document_matrix = lsa[self.gensim_corpus]
 
 
 class NonNegativeMatrixFactorization(TopicModel):
 
     def infer_topics(self, num_topics=10):
-        nmf = NMF(n_components=num_topics, random_state=1).fit(self.sklearn_corpus)
+        nmf = NMF(n_components=num_topics, random_state=1)
+        topic_document = nmf.fit_transform(self.sklearn_corpus)
         feature_names = self.vectorizer.get_feature_names()
-        self.topics = []
+        self.word_topic_matrix = []
+        self.topic_document_matrix = []
         vocabulary_size = len(self.vocabulary)
         for topic_idx, topic in enumerate(nmf.components_):
             word_list = [feature_names[i] for i in topic.argsort()[:-vocabulary_size - 1:-1]]
@@ -92,4 +105,11 @@ class NonNegativeMatrixFactorization(TopicModel):
             weighted_word_list = []
             for i in range(0, len(word_list)):
                 weighted_word_list.append((weight_list[i], word_list[i]))
-            self.topics.append(weighted_word_list)
+            self.word_topic_matrix.append(weighted_word_list)
+        for doc in topic_document:
+            row = []
+            i = 0
+            for topic in doc:
+                row.append((i, topic))
+                i += 1
+            self.topic_document_matrix.append(row)

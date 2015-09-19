@@ -4,3 +4,17 @@
 *.iml
 
 *.pyc
+
+*.png
+
+*.html
+
+input/egc/title.txt
+
+input/test.txt
+
+input/egc/date.txt
+
+*.pickle
+
+input/test.txt

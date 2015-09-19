@@ -59,4 +59,4 @@ visualization.plot_topic_distribution(topic_model.topic_distribution(2))
 - Get the most likely topic for a document:
 ```
 print '\nMost likely topic for document 2:', topic_model.most_likely_topic_for_document(2)
-``
+```

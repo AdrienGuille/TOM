@@ -19,6 +19,7 @@ class Corpus:
             self.documents = f.read().splitlines()
         self.size = len(self.documents)
         self.dates = None
+        self.time_index = None
         if time_file_path is not None:
             with open(time_file_path) as f:
                 self.dates = f.read().splitlines()
@@ -44,6 +45,12 @@ class Corpus:
         self.gensim_tfidf = matutils.Sparse2Corpus(self.sklearn_tfidf, documents_columns=False)
         vocab = self.vectorizer.get_feature_names()
         self.vocabulary = dict([(i, s) for i, s in enumerate(vocab)])
+
+    def get_ids(self, date):
+        if self.time_index is not None:
+            return self.time_index.get(str(date))
+        else:
+            raise ValueError('No temporal information available for this corpus')
 
     def get_vector_for_document(self, doc_id):
         return self.sklearn_tfidf[doc_id]

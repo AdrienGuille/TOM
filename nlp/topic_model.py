@@ -39,6 +39,9 @@ class TopicModel(object):
             print 'topic', count, ': ', ' '.join(word_list)
             count += 1
 
+    def get_top_words(self, topic_id, num_words):
+        return self.word_topic_matrix[topic_id][:num_words]
+
     def topic_distribution(self, doc_id):
         return list(self.topic_document_matrix[doc_id])
 
@@ -46,17 +49,18 @@ class TopicModel(object):
         td = self.topic_distribution(doc_id)
         return td.index(max(td))
 
-    def topic_absolute_frequency(self):
-        frequency = [0] * self.nb_topics
-        for i in range(self.corpus.size):
-            topic = self.most_likely_topic_for_document(i)
-            frequency[topic] += 1
-        return frequency
+    def topic_frequency(self, topic, date=None):
+        return self.topics_frequency(date=date)[topic]
 
-    def topic_relative_frequency(self):
-        frequency = self.topic_absolute_frequency()
-        for i in range(len(frequency)):
-            frequency[i] = float(frequency[i])/float(self.corpus.size)
+    def topics_frequency(self, date=None):
+        frequency = [0.0] * self.nb_topics
+        if date is None:
+            ids = range(self.corpus.size)
+        else:
+            ids = self.corpus.get_ids(date)
+        for i in ids:
+            topic = self.most_likely_topic_for_document(i)
+            frequency[topic] += 1.0/len(ids)
         return frequency
 
 
@@ -68,9 +72,9 @@ class LatentDirichletAllocation(TopicModel):
                               id2word=self.corpus.vocabulary,
                               iterations=10000,
                               num_topics=num_topics)
-        self.word_topic_matrix = lda.show_topics(num_topics=num_topics,
+        self.word_topic_matrix = list(lda.show_topics(num_topics=num_topics,
                                                  num_words=len(self.corpus.vocabulary),
-                                                 formatted=False)
+                                                 formatted=False))
         self.topic_document_matrix = numpy.transpose(matutils.corpus2dense(lda[self.corpus.gensim_tfidf],
                                                                            num_topics,
                                                                            self.corpus.size))
@@ -83,9 +87,9 @@ class LatentSemanticAnalysis(TopicModel):
         lsa = models.LsiModel(corpus=self.corpus.gensim_tfidf,
                               id2word=self.corpus.vocabulary,
                               num_topics=num_topics)
-        self.word_topic_matrix = lsa.show_topics(num_topics=num_topics,
+        self.word_topic_matrix = list(lsa.show_topics(num_topics=num_topics,
                                                  num_words=len(self.corpus.vocabulary),
-                                                 formatted=False)
+                                                 formatted=False))
         self.topic_document_matrix = numpy.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_tfidf],
                                                                            num_topics,
                                                                            self.corpus.size))

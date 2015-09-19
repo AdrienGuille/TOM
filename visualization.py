@@ -4,7 +4,6 @@ from bokeh.models import HoverTool
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 import numpy as np
-from scipy.interpolate import spline
 import seaborn
 
 __author__ = "Adrien Guille"
@@ -21,6 +20,36 @@ def plot_topic_distribution(distribution, file_path=None):
     plt.xlabel('topic')
     if file_path is None:
         file_path = 'output/topic_distribution.png'
+    plt.savefig(file_path)
+
+
+def plot_word_distribution(distribution, file_path=None):
+    data_x = []
+    data_y = []
+    for weighted_word in distribution:
+        data_x.append(weighted_word[1])
+        data_y.append(weighted_word[0])
+    plt.clf()
+    plt.bar(range(len(data_x)), data_y, align='center')
+    plt.xticks(range(len(data_x)), data_x, size='small', rotation='vertical')
+    plt.title('Word distribution')
+    plt.ylabel('probability')
+    plt.xlabel('word')
+    if file_path is None:
+        file_path = 'output/word_distribution.png'
+    plt.savefig(file_path)
+
+
+def plot_topic_evolution(series, file_path=None):
+    data_x = range(0, len(series))
+    plt.clf()
+    plt.xticks(np.arange(0, len(series), 1.0))
+    plt.plot(data_x, series)
+    plt.title('Topic popularity')
+    plt.ylabel('frequency')
+    plt.xlabel('year')
+    if file_path is None:
+        file_path = 'output/topic_evolution.png'
     plt.savefig(file_path)
 
 

@@ -1,4 +1,5 @@
 # coding: utf-8
+import codecs
 from gensim import matutils
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,13 +16,13 @@ class Corpus:
                  language=None,
                  max_relative_frequency=0.95,
                  min_absolute_frequency=2):
-        with open(text_file_path) as f:
+        with codecs.open(text_file_path) as f:
             self.documents = f.read().splitlines()
         self.size = len(self.documents)
         self.dates = None
         self.time_index = None
         if time_file_path is not None:
-            with open(time_file_path) as f:
+            with codecs.open(time_file_path, 'r', encoding='utf-8') as f:
                 self.dates = f.read().splitlines()
             if self.size != len(self.dates):
                 raise ValueError('Text file and time file lengths mismatch')

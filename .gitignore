@@ -18,3 +18,17 @@ input/egc/date.txt
 *.pickle
 
 input/test.txt
+
+input/egc/dates.txt
+
+input/egc/titles.txt
+
+input/egc/abstracts.txt
+
+input/egc/titles0.txt
+
+*.tsv
+
+*.json
+
+input/egc/authors.txt

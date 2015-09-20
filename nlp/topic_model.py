@@ -63,6 +63,19 @@ class TopicModel(object):
             frequency[topic] += 1.0/len(ids)
         return frequency
 
+    def documents_per_topic(self):
+        affiliations = {}
+        for i in range(self.corpus.size):
+            topic_id = self.most_likely_topic_for_document(i)
+            if affiliations.get(topic_id):
+                documents = affiliations[topic_id]
+                documents.append(i)
+                affiliations[topic_id] = documents
+            else:
+                documents = [topic_id]
+                affiliations[topic_id] = documents
+        return affiliations
+
 
 class LatentDirichletAllocation(TopicModel):
 

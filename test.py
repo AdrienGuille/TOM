@@ -9,7 +9,9 @@ import utils
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
-corpus = Corpus(text_file_path='input/egc/abstracts.txt',
+corpus = Corpus(full_content_file_path='input/egc/abstracts.txt',
+                author_file_path='input/egc/authors.txt',
+                short_content_file_path='input/egc/titles0.txt',
                 time_file_path='input/egc/dates.txt',
                 language='french',
                 max_relative_frequency=0.8,

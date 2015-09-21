@@ -4,6 +4,7 @@ from gensim import models, matutils
 from sklearn.decomposition import NMF
 import numpy
 import math
+import stats
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"

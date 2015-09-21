@@ -7,14 +7,21 @@ __email__ = "adrien.guille@univ-lyon2.fr"
 
 
 def save_word_distribution(distribution, file_path):
-    with codecs.open(file_path, 'w', encoding='latin-1') as f:
+    with codecs.open(file_path, 'w', encoding='utf-8') as f:
         f.write('word\tweight\n')
         for weighted_word in distribution:
             f.write(weighted_word[1]+'\t'+str(weighted_word[0])+'\n')
 
 
+def save_topic_distribution(distribution, file_path):
+    with codecs.open(file_path, 'w', encoding='utf-8') as f:
+        f.write('topic\tweight\n')
+        for i in range(len(distribution)):
+            f.write('topic '+str(i)+'\t'+str(distribution[i])+'\n')
+
+
 def save_topic_evolution(evolution, file_path):
-    with codecs.open(file_path, 'w', encoding='latin-1') as f:
+    with codecs.open(file_path, 'w', encoding='utf-8') as f:
         f.write('date\tfrequency\n')
         for date, frequency in evolution:
             f.write(str(date)+'\t'+str(frequency)+'\n')
@@ -34,5 +41,10 @@ def save_topic_cloud(topic_model, file_path):
                            'group': i})
     json_graph['nodes'] = json_nodes
     json_graph['links'] = json_links
+    with codecs.open(file_path, 'w', encoding='utf-8') as fp:
+        json.dump(json_graph, fp, indent=4, separators=(',', ': '))
+
+
+def save_author_network(json_graph, file_path):
     with codecs.open(file_path, 'w', encoding='utf-8') as fp:
         json.dump(json_graph, fp, indent=4, separators=(',', ': '))

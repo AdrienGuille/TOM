@@ -4,6 +4,8 @@ from structure.corpus import Corpus
 from flask import Flask, render_template
 import utils
 import itertools
+import shutil
+import os
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -26,6 +28,11 @@ print 'vocabulary size:', len(corpus.vocabulary)
 topic_model = NonNegativeMatrixFactorization(corpus=corpus)
 topic_model.infer_topics(num_topics=15)
 
+# Clean the data directory
+if os.path.exists('static/data'):
+    shutil.rmtree('static/data')
+os.makedirs('static/data')
+
 # Export topic cloud
 utils.save_topic_cloud(topic_model, 'static/data/topic_cloud.json')
 
@@ -39,7 +46,11 @@ for topic_id in range(topic_model.nb_topics):
 
 # Export details about documents
 for doc_id in range(topic_model.corpus.size):
-    utils.save_topic_distribution(topic_model.topic_distribution(doc_id), 'static/data/topic_distribution'+str(doc_id)+'.tsv')
+    utils.save_topic_distribution(topic_model.topic_distribution_for_document(doc_id), 'static/data/topic_distribution_d'+str(doc_id)+'.tsv')
+
+# Export details about words
+for word_id in range(len(topic_model.corpus.vocabulary)):
+    utils.save_topic_distribution(topic_model.topic_distribution_for_word(word_id), 'static/data/topic_distribution_w'+str(word_id)+'.tsv')
 
 # Affiliate documents with topics
 topic_affiliations = topic_model.documents_per_topic()
@@ -51,7 +62,9 @@ for topic_id in range(topic_model.nb_topics):
 
 @app.route('/')
 def topic_cloud():
-    return render_template('topic_cloud.html')
+    return render_template('topic_cloud.html',
+                           topic_ids=range(topic_model.nb_topics),
+                           doc_ids=range(corpus.size))
 
 
 @app.route('/topic/<tid>')
@@ -59,7 +72,9 @@ def topic_details(tid):
     ids = topic_affiliations[int(tid)]
     documents = []
     for document_id in ids:
-        documents.append((corpus.titles[document_id].capitalize(), ', '.join(corpus.authors[document_id]), corpus.dates[doc_id], document_id))
+        documents.append((corpus.titles[document_id].capitalize(),
+                          ', '.join(corpus.authors[document_id]),
+                          corpus.dates[doc_id], document_id))
     documents.pop(0)
     return render_template('topic.html',
                            topic_id=tid,
@@ -75,12 +90,23 @@ def document_details(did):
     cx = vector.tocoo()
     word_list = []
     for row, word_id, weight in itertools.izip(cx.row, cx.col, cx.data):
-        word_list.append((topic_model.corpus.get_word_for_id(word_id), weight))
+        word_list.append((topic_model.corpus.get_word_for_id(word_id), weight, word_id))
     word_list.sort(key=lambda x: x[1])
     word_list.reverse()
     return render_template('document.html',
                            doc_id=did,
                            words=word_list[:25],
+                           topic_ids=range(topic_model.nb_topics),
+                           doc_ids=range(corpus.size),
+                           authors=', '.join(corpus.authors[int(did)]),
+                           year=corpus.dates[int(did)])
+
+
+@app.route('/word/<wid>')
+def word_details(wid):
+    return render_template('word.html',
+                           word_id=wid,
+                           word=topic_model.corpus.get_word_for_id(int(wid)),
                            topic_ids=range(topic_model.nb_topics),
                            doc_ids=range(corpus.size))
 

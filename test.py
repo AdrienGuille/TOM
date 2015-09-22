@@ -25,7 +25,7 @@ print '\nTopics:'
 topic_model.print_topics(num_words=10, display_weights=True)
 print '\nDocument 2:', topic_model.corpus.documents[2]
 print '\nVector representation of document 2:\n', topic_model.corpus.get_vector_for_document(2)
-print '\nTopic distribution for document 2:', topic_model.topic_distribution(2)
+print '\nTopic distribution for document 2:', topic_model.topic_distribution_for_document(2)
 viz.plot_topic_distribution(2)
 print '\nMost likely topic for document 2:', topic_model.most_likely_topic_for_document(2)
 print '\nTopics frequency:', topic_model.topics_frequency()

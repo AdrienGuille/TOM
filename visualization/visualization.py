@@ -15,7 +15,7 @@ class Visualization:
         self.topic_model = topic_model
 
     def plot_topic_distribution(self, doc_id, file_path='output/topic_distribution.png'):
-        distribution = self.topic_model.topic_distribution(doc_id)
+        distribution = self.topic_model.topic_distribution_for_document(doc_id)
         data_x = range(0, len(distribution))
         plt.clf()
         plt.xticks(np.arange(0, len(distribution), 1.0))

@@ -36,3 +36,5 @@ input/egc/authors.txt
 input/egc/full_content.txt
 
 input/egc/short_content.txt
+
+egc.py

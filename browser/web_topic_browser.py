@@ -25,6 +25,7 @@ print 'vocabulary size:', len(corpus.vocabulary)
 # Infer topics
 topic_model = NonNegativeMatrixFactorization(corpus=corpus)
 topic_model.infer_topics(num_topics=15)
+topic_model.print_topics(num_words=10)
 
 # Clean the data directory
 if os.path.exists('static/data'):
@@ -36,7 +37,10 @@ utils.save_topic_cloud(topic_model, 'static/data/topic_cloud.json')
 
 # Export details about topics
 for topic_id in range(topic_model.nb_topics):
-    utils.save_word_distribution(topic_model.top_words(topic_id, 20), 'static/data/word_distribution'+str(topic_id)+'.tsv')
+    utils.save_word_distribution(topic_model.top_words(topic_id, 20),
+                                 'static/data/word_distribution'+str(topic_id)+'.tsv')
+    utils.save_affiliation_repartition(topic_model.affiliation_repartition(topic_id),
+                                       'static/data/affiliation_repartition'+str(topic_id)+'.tsv')
     evolution = []
     for i in range(2004, 2016):
         evolution.append((i, topic_model.topic_frequency(topic_id, date=i)))
@@ -44,14 +48,16 @@ for topic_id in range(topic_model.nb_topics):
 
 # Export details about documents
 for doc_id in range(topic_model.corpus.size):
-    utils.save_topic_distribution(topic_model.topic_distribution_for_document(doc_id), 'static/data/topic_distribution_d'+str(doc_id)+'.tsv')
+    utils.save_topic_distribution(topic_model.topic_distribution_for_document(doc_id),
+                                  'static/data/topic_distribution_d'+str(doc_id)+'.tsv')
 
 # Export details about words
 for word_id in range(len(topic_model.corpus.vocabulary)):
-    utils.save_topic_distribution(topic_model.topic_distribution_for_word(word_id), 'static/data/topic_distribution_w'+str(word_id)+'.tsv')
+    utils.save_topic_distribution(topic_model.topic_distribution_for_word(word_id),
+                                  'static/data/topic_distribution_w'+str(word_id)+'.tsv')
 
-# Affiliate documents with topics
-topic_affiliations = topic_model.documents_per_topic()
+# Associate documents with topics
+topic_associations = topic_model.documents_per_topic()
 
 # Export per-topic author network
 # for topic_id in range(topic_model.nb_topics):
@@ -76,7 +82,7 @@ def topic_cloud():
 def vocabulary():
     word_list = []
     for i in range(len(corpus.vocabulary)):
-        word_list.append((i, corpus.get_word_for_id(i)))
+        word_list.append((i, corpus.word_for_id(i)))
     splitted_vocabulary = []
     words_per_column = int(len(corpus.vocabulary)/5)
     print words_per_column, 'words per column'
@@ -84,7 +90,6 @@ def vocabulary():
         sub_vocabulary = []
         for l in range(j*words_per_column, (j+1)*words_per_column):
             sub_vocabulary.append(word_list[l])
-        print sub_vocabulary
         splitted_vocabulary.append(sub_vocabulary)
     return render_template('vocabulary.html',
                            topic_ids=range(topic_model.nb_topics),
@@ -95,7 +100,7 @@ def vocabulary():
 
 @app.route('/topic/<tid>.html')
 def topic_details(tid):
-    ids = topic_affiliations[int(tid)]
+    ids = topic_associations[int(tid)]
     documents = []
     for document_id in ids:
         documents.append((corpus.short_content(document_id).capitalize(),

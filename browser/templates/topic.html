@@ -43,7 +43,7 @@
 </style>
 <body>
     <div id="navigation">
-        <select onChange="window.location.href='../'">
+        <select onChange="window.location.href=((this.value == 'topics') ? '../topic_cloud.html' : '../vocabulary.html')">
             <option selected="selected" disabled="disabled">Overview</option>
             <option>topics</option>
             <option>articles</option>
@@ -75,6 +75,8 @@
             <line-chart></line-chart>
             <h2>Author network</h2>
             <author-network></author-network>
+            <h2>Number of documents among top 15</h2>
+            <bar-chart2></bar-chart2>
         </div>
         <div id="right_column">
         <h2>Related documents ({{documents|length}})</h2>
@@ -96,7 +98,7 @@
 <script src="{{ url_for('static', filename = 'js/d3-tip.js' )}}"></script>
 <script>
 // (document.body.clientWidth)*0.6
-var margin = {top: 10, right: 0, bottom: 60, left: 40},
+var margin = {top: 10, right: 0, bottom: 100, left: 40},
     width = 600 - margin.left - margin.right,
     height = 350 - margin.top - margin.bottom;
 var x = d3.scale.ordinal()
@@ -109,18 +111,11 @@ var xAxis = d3.svg.axis()
 var yAxis = d3.svg.axis()
     .scale(y)
     .orient("left");
-var tip = d3.tip()
-  .attr('class', 'd3-tip')
-  .offset([-10, 0])
-  .html(function(d) {
-    return "<strong>Weight:</strong> <span style='color:red'>" + d.weight + "</span>";
-  })
 var svg = d3.select("bar-chart").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-svg.call(tip);
 d3.tsv("{{ url_for('static', filename = 'data/word_distribution'+topic_id+'.tsv') }}", type, function(error, data) {
   x.domain(data.map(function(d) { return d.word; }));
   y.domain([0, d3.max(data, function(d) { return d.weight; })]);
@@ -258,4 +253,59 @@ d3.json("{{ url_for('static', filename = 'data/author_network'+topic_id+'.json')
         .attr("cy", function(d) { return d.y; });
   });
 });
+</script>
+<script>
+var margin4 = {top: 10, right: 0, bottom: 100, left: 40},
+    width4 = 600 - margin.left - margin.right,
+    height4 = 350 - margin.top - margin.bottom;
+var x4 = d3.scale.ordinal()
+    .rangeRoundBands([0, width4], .1);
+var y4 = d3.scale.linear()
+    .range([height4, 0]);
+var xAxis4 = d3.svg.axis()
+    .scale(x4)
+    .orient("bottom");
+var yAxis4 = d3.svg.axis()
+    .scale(y4)
+    .orient("left");
+var svg4 = d3.select("bar-chart2").append("svg")
+    .attr("width", width4 + margin4.left + margin4.right)
+    .attr("height", height4 + margin4.top + margin4.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin4.left + "," + margin4.top + ")");
+d3.tsv("{{ url_for('static', filename = 'data/affiliation_repartition'+topic_id+'.tsv') }}", type, function(error, data4) {
+  x4.domain(data4.map(function(d) { return d.affiliation; }));
+  y4.domain([0, d3.max(data4, function(d) { return d.count; })]);
+  svg4.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height4 + ")")
+      .call(xAxis4)
+      .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-1em")
+            .attr("dy", "-0.7em")
+            .attr("transform", "rotate(-90)" );
+  svg4.append("g")
+      .attr("class", "y axis")
+      .call(yAxis4)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 2)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Count");
+  svg4.selectAll(".bar")
+      .data(data4)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x4(d.affiliation); })
+      .attr("width", x4.rangeBand())
+      .attr("y", function(d) { return y4(d.count); })
+      .attr("height", function(d) { return height4 - y4(d.count); })
+});
+
+function type(d) {
+  d.count = +d.count;
+  return d;
+}
 </script>

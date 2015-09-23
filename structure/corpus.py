@@ -52,6 +52,9 @@ class Corpus:
     def authors(self, doc_id):
         return self.data_frame.iloc[doc_id]['authors']
 
+    def affiliations(self, doc_id):
+        return self.data_frame.iloc[doc_id]['affiliations']
+
     def documents_by_author(self, author):
         ids = []
         for i in range(self.size):
@@ -80,9 +83,6 @@ class Corpus:
         for row, word_id, weight in itertools.izip(cx.row, cx.col, cx.data):
             word_list[word_id] = weight
         return word_list
-
-    def id_for_word(self, word):
-        return 0
 
     def word_for_id(self, word_id):
         return self.vocabulary.get(word_id)

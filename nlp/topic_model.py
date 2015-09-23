@@ -43,16 +43,44 @@ class TopicModel(object):
         weighted_words = [()] * len(self.corpus.vocabulary)
         for row, word_id, weight in itertools.izip(cx.row, cx.col, cx.data):
             weighted_words[word_id] = (self.corpus.word_for_id(word_id), weight)
-        weighted_words.sort(key=lambda x: x[1])
-        weighted_words.reverse()
+        weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
+    def top_documents(self, topic_id, num_docs):
+        vector = self.document_topic_matrix[:, topic_id]
+        weights = [0.0] * self.corpus.size
+        cx = vector.tocoo()
+        for doc_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
+            weights[doc_id] = weight
+        ordered_docs = list(numpy.argsort(weights).tolist())
+        # ordered_docs = reversed(ordered_docs)
+        return ordered_docs[:num_docs]
+
+    def affiliation_repartition(self, topic_id):
+        counts = {}
+        doc_ids = self.top_documents(topic_id, 15)
+        for i in doc_ids:
+            affiliations = str(self.corpus.affiliations(i))
+            affiliation_list = affiliations.split(', ')
+            for affiliation in affiliation_list:
+                if counts.get(affiliation):
+                    count = counts[affiliation] + 1
+                    counts[affiliation] = count
+                else:
+                    counts[affiliation] = 1
+        return counts
+
     def topic_distribution_for_document(self, doc_id):
-        return list(self.document_topic_matrix[doc_id])
+        vector = self.document_topic_matrix[doc_id]
+        cx = vector.tocoo()
+        weights = [()] * self.nb_topics
+        for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+            weights[topic_id] = weight
+        return weights
 
     def most_likely_topic_for_document(self, doc_id):
-        td = self.topic_distribution_for_document(doc_id)
-        return td.index(max(td))
+        weights = self.topic_distribution_for_document(doc_id)
+        return weights.index(max(weights))
 
     def topic_distribution_for_word(self, word_id):
         vector = self.topic_word_matrix[:, word_id]
@@ -76,22 +104,18 @@ class TopicModel(object):
             frequency[topic] += 1.0/len(ids)
         return frequency
 
-    def top_documents(self, topic_id, num_docs):
-        vector = self.document_topic_matrix[:, topic_id]
-        return vector.argsort()[:num_docs+1:-1]
-
     def documents_per_topic(self):
-        affiliations = {}
+        topic_associations = {}
         for i in range(self.corpus.size):
             topic_id = self.most_likely_topic_for_document(i)
-            if affiliations.get(topic_id):
-                documents = affiliations[topic_id]
+            if topic_associations.get(topic_id):
+                documents = topic_associations[topic_id]
                 documents.append(i)
-                affiliations[topic_id] = documents
+                topic_associations[topic_id] = documents
             else:
                 documents = [topic_id]
-                affiliations[topic_id] = documents
-        return affiliations
+                topic_associations[topic_id] = documents
+        return topic_associations
 
 
 class LatentDirichletAllocation(TopicModel):
@@ -113,7 +137,8 @@ class LatentDirichletAllocation(TopicModel):
                 row.append(topic_id)
                 col.append(word_id)
                 data.append(probability)
-        self.topic_word_matrix = coo_matrix((data, (row, col)), shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
+        self.topic_word_matrix = coo_matrix((data, (row, col)),
+                                            shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
         self.document_topic_matrix = numpy.transpose(matutils.corpus2dense(lda[self.corpus.gensim_tfidf],
                                                                            num_topics,
                                                                            self.corpus.size))
@@ -138,7 +163,8 @@ class LatentSemanticAnalysis(TopicModel):
                 row.append(topic_id)
                 col.append(word_id)
                 data.append(weight)
-        self.topic_word_matrix = coo_matrix((data, (row, col)), shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
+        self.topic_word_matrix = coo_matrix((data, (row, col)),
+                                            shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
         self.document_topic_matrix = numpy.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_tfidf],
                                                                            num_topics,
                                                                            self.corpus.size))
@@ -150,7 +176,6 @@ class NonNegativeMatrixFactorization(TopicModel):
         self.nb_topics = num_topics
         nmf = NMF(n_components=num_topics, random_state=1)
         topic_document = nmf.fit_transform(self.corpus.sklearn_tfidf)
-        feature_names = self.corpus.vectorizer.get_feature_names()
         self.topic_word_matrix = []
         self.document_topic_matrix = []
         vocabulary_size = len(self.corpus.vocabulary)
@@ -162,9 +187,19 @@ class NonNegativeMatrixFactorization(TopicModel):
                 row.append(topic_idx)
                 col.append(i)
                 data.append(topic[i])
-        self.topic_word_matrix = coo_matrix((data, (row, col)), shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
+        self.topic_word_matrix = coo_matrix((data, (row, col)),
+                                            shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
+        row = []
+        col = []
+        data = []
+        doc_count = 0
         for doc in topic_document:
-            row = []
-            for topic in doc:
-                row.append(math.fabs(topic))
-            self.document_topic_matrix.append(row)
+            topic_count = 0
+            for topic_weight in doc:
+                row.append(doc_count)
+                col.append(topic_count)
+                data.append(topic_weight)
+                topic_count += 1
+            doc_count += 1
+        self.document_topic_matrix = coo_matrix((data, (row, col)),
+                                                shape=(self.corpus.size, self.nb_topics)).tocsr()

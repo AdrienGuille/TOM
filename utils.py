@@ -27,6 +27,13 @@ def save_topic_evolution(evolution, file_path):
             f.write(str(date)+'\t'+str(frequency)+'\n')
 
 
+def save_affiliation_repartition(affiliation_repartition, file_path):
+    with codecs.open(file_path, 'w', encoding='utf-8') as f:
+        f.write('affiliation\tcount\n')
+        for affiliation, count in affiliation_repartition.items():
+            f.write(affiliation+'\t'+str(count)+'\n')
+
+
 def save_topic_cloud(topic_model, file_path):
     json_graph = {}
     json_nodes = []

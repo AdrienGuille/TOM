@@ -1,40 +1,13 @@
+*.tsv
 
 *.xml
 
+*.json
+
 *.iml
+
+*.txt
 
 *.pyc
 
-*.png
-
-*.html
-
-input/egc/title.txt
-
-input/test.txt
-
-input/egc/date.txt
-
-*.pickle
-
-input/test.txt
-
-input/egc/dates.txt
-
-input/egc/titles.txt
-
-input/egc/abstracts.txt
-
-input/egc/titles0.txt
-
-*.tsv
-
-*.json
-
-input/egc/authors.txt
-
-input/egc/full_content.txt
-
-input/egc/short_content.txt
-
-egc.py
+*.mlex

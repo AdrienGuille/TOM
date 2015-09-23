@@ -10,7 +10,7 @@ def save_word_distribution(distribution, file_path):
     with codecs.open(file_path, 'w', encoding='utf-8') as f:
         f.write('word\tweight\n')
         for weighted_word in distribution:
-            f.write(weighted_word[1]+'\t'+str(weighted_word[0])+'\n')
+            f.write(weighted_word[0]+'\t'+str(weighted_word[1])+'\n')
 
 
 def save_topic_distribution(distribution, file_path):
@@ -33,8 +33,8 @@ def save_topic_cloud(topic_model, file_path):
     json_links = []
     for i in range(topic_model.nb_topics):
         description = []
-        for weighted_word in topic_model.get_top_words(i, 5):
-            description.append(weighted_word[1])
+        for weighted_word in topic_model.top_words(i, 5):
+            description.append(weighted_word[0])
         json_nodes.append({'name': i,
                            'frequency': topic_model.topic_frequency(i),
                            'description': ', '.join(description),

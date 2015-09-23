@@ -28,10 +28,10 @@ class Visualization:
     def plot_word_distribution(self, topic_id, nb_words=10, file_path='output/word_distribution.png'):
         data_x = []
         data_y = []
-        distribution = self.topic_model.get_top_words(topic_id, nb_words)
+        distribution = self.topic_model.top_words(topic_id, nb_words)
         for weighted_word in distribution:
-            data_x.append(weighted_word[1])
-            data_y.append(weighted_word[0])
+            data_x.append(weighted_word[0])
+            data_y.append(weighted_word[1])
         plt.clf()
         plt.bar(range(len(data_x)), data_y, align='center')
         plt.xticks(range(len(data_x)), data_x, size='small', rotation='vertical')
@@ -59,7 +59,7 @@ class Visualization:
         json_links = []
         for i in range(self.topic_model.nb_topics):
             description = []
-            for weighted_word in self.topic_model.get_top_words(i, 5):
+            for weighted_word in self.topic_model.top_words(i, 5):
                 description.append(weighted_word[1])
             json_nodes.append({'name': 'topic'+str(i),
                                'frequency': self.topic_model.topic_frequency(i),

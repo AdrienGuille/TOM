@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html">
+  <title>Vocabulaire intégral</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/style.css') }}"/>
+</head>
+<body>
+    <div id="navigation">
+        <select onChange="window.location.href=this.value=='thématique'?'topic_cloud.html':'vocabulary.html')">
+            <option selected="selected" disabled="disabled">Vue globale</option>
+            <option>thématiques</option>
+            <option>articles</option>
+        </select>
+        -
+        <select onChange="window.location.href='topic/'+this.value+'.html'">
+            <option selected="selected" disabled="disabled">Détails à propos d'une thématique</option>
+            {% for i in topic_ids %}
+                <option>{{ i }}</option>
+            {% endfor %}
+        </select>
+        -
+        <select onChange="window.location.href='document/'+this.value+'.html'">
+            <option selected="selected" disabled="disabled">Détails à propos d'un article</option>
+            {% for j in doc_ids %}
+                <option>{{ j }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="header">
+        <h1>Vocabulaire intégral</h1>
+        Nombre de mots : {{ vocabulary_size }}
+    </div>
+    <div id="wrap">
+    {% for vocabulary in splitted_vocabulary %}
+        <div id="five_columns">
+            <ul>
+                {% for indexed_word in vocabulary %}
+                    <li><a href="word/{{ indexed_word[0] }}.html">{{ indexed_word[1] }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+    </div>
+</body>

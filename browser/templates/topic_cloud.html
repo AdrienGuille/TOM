@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html">
+  <title>Topic cloud</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/style.css') }}"/>
+</head>
+<style>
+.node {
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+.node:hover {
+  stroke: #222;
+  stroke-width: 3px;
+}
+
+text {
+  font: 14px;
+  color: #bbb;
+  pointer-events: none;
+}
+</style>
+<body>
+    <div id="navigation">
+        <select onChange="window.location.href='../'">
+            <option selected="selected" disabled="disabled">Overview</option>
+            <option>topics</option>
+            <option>articles</option>
+        </select>
+        -
+        <select onChange="window.location.href='../topic/'+this.value+'.html'">
+            <option selected="selected" disabled="disabled">Details about a topic</option>
+            {% for i in topic_ids %}
+                <option>{{ i }}</option>
+            {% endfor %}
+        </select>
+        -
+        <select onChange="window.location.href='../document/'+this.value+'.html'">
+            <option selected="selected" disabled="disabled">Details about a document</option>
+            {% for j in doc_ids %}
+                <option>{{ j }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="header">
+        <h1>Topic cloud</h1>
+        Each bubble represents a topic; double-click one to get more details
+    </div>
+    <topic-graph></topic-graph>
+</body>
+<script src="{{ url_for('static', filename = 'js/d3.min.js' )}}"></script>
+<script>
+var width = window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+var height = window.innerHeight
+|| document.documentElement.clientHeight
+|| document.body.clientHeight;
+height = height - 80
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-900)
+    .linkDistance(100)
+    .size([width, height]);
+
+var svg = d3.select("topic-graph").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", "0 0 " + width + " " + height )
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .attr("pointer-events", "all")
+    .call(d3.behavior.zoom().on("zoom", redraw));
+
+var vis = svg
+    .append('svg:g');
+
+function redraw() {
+  vis.attr("transform",
+      "translate(" + d3.event.translate + ")"
+      + " scale(" + d3.event.scale + ")");
+}
+
+d3.json("{{ url_for('static', filename = 'data/topic_cloud.json') }}", function(error, cloud) {
+  if (error) throw error;
+
+  force
+      .nodes(cloud.nodes)
+      .links(cloud.links)
+      .start();
+
+  var link = svg.selectAll(".link")
+      .data(cloud.links)
+    .enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", 0);
+
+  var node = svg.selectAll(".node")
+      .data(cloud.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", function(d) { return d.frequency * 500; })
+      .style("fill", "#bbb")
+      .call(force.drag)
+      .on("dblclick", show_details)
+      .on("mouseover", focus_topic)
+      .on("mouseout", unfocus_topic);
+
+  node.append("title")
+      .text(function(d) { return d.name; });
+
+  function show_details() {
+    window.location = "topic/"+d3.select(this).select("title").text()+".html";
+  }
+
+  function focus_topic() {
+    d3.select(this).style("fill", "#ddd");
+  }
+
+  function unfocus_topic() {
+    d3.select(this).style("fill", "#bbb");
+  }
+
+  var texts = svg.selectAll("text.label")
+      .data(cloud.nodes)
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .attr("fill", "#333")
+      .attr("text-anchor", "middle")
+      .attr("dy", ".35em")
+      .text(function(d) { return d.description; });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+
+    texts.attr("x", function(d) {return d.x;})
+        .attr("y", function(d) {return d.y;});
+  });
+});
+</script>

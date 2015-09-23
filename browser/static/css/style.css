@@ -1,0 +1,59 @@
+h1{
+    font: 20px;
+    line-height: 44px;
+    margin: 0;
+}
+
+h2{
+    font: 17px;
+}
+
+h3{
+    font: 14px;
+}
+
+select{
+    font: 11px;
+}
+
+body {
+    font: 11px;
+    width: 100%;
+    margin: auto;
+    text-align: center;
+}
+
+#navigation{
+    height: 40px;
+    line-height: 40px;
+}
+
+#header{
+    line-height: 40px;
+}
+
+#wrap {
+  width:1000px;
+  margin:0 auto;
+}
+
+#left_column {
+  text-align: left;
+  width:600px;
+  margin:0 auto;
+  float:left;
+}
+
+#five_columns {
+  text-align: left;
+  width:200px;
+  margin:0 auto;
+  float:left;
+}
+
+#right_column {
+  text-align: left;
+  width:400px;
+  margin:0 auto;
+  float:right;
+}

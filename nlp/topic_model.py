@@ -113,7 +113,7 @@ class TopicModel(object):
                 documents.append(i)
                 topic_associations[topic_id] = documents
             else:
-                documents = [topic_id]
+                documents = [i]
                 topic_associations[topic_id] = documents
         return topic_associations
 

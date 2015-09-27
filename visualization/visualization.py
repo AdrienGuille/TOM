@@ -40,18 +40,14 @@ class Visualization:
         plt.xlabel('word')
         plt.savefig(file_path)
 
-    def plot_topic_evolution(self, topic_id, file_path='output/topic_evolution.png'):
-        """
-        self.topic_model.topic_model.topic_frequency(topic_id)
-        data_x = range(0, len(series))
+    def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, file_path='output/arun.png'):
+        symmetric_kl_divergence = self.topic_model.arun_metric(min_num_topics, max_num_topics)
         plt.clf()
-        plt.xticks(np.arange(0, len(series), 1.0))
-        plt.bar(data_x, series)
-        plt.title('Topic popularity')
-        plt.ylabel('frequency')
-        plt.xlabel('year')
+        plt.plot(range(min_num_topics, max_num_topics+1), symmetric_kl_divergence)
+        plt.title('Arun et al. metric')
+        plt.xlabel('number of topics')
+        plt.ylabel('symmetric KL divergence')
         plt.savefig(file_path)
-        """
 
     def topic_cloud(self, file_path='output/topic_cloud.json'):
         json_graph = {}

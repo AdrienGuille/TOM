@@ -3,11 +3,11 @@ from abc import ABCMeta, abstractmethod
 from gensim import models, matutils
 from sklearn.decomposition import NMF
 import numpy
-import math
 from scipy.sparse import coo_matrix
 import stats
-from collections import defaultdict
 import itertools
+from scipy import spatial, sparse
+
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -33,9 +33,22 @@ class TopicModel(object):
                 word_list.append(weighted_word[0])
             print 'topic', topic_id, ': ', ' '.join(word_list)
 
-    def estimate_optimal_k(self):
-        U, s, V = numpy.linalg.svd(self.topic_word_matrix, full_matrices=True)
-        return ""
+    def arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
+        kl_matrix = []
+        for j in range(iterations):
+            kl_list = []
+            l = numpy.array([sum(self.corpus.vector_for_document(doc_id)) for doc_id in range(self.corpus.size)])
+            norm = numpy.linalg.norm(l)
+            for i in range(min_num_topics, max_num_topics+1):
+                self.infer_topics(i)
+                c_m1 = numpy.linalg.svd(self.topic_word_matrix.todense(), compute_uv=False)
+                c_m2 = l.dot(self.document_topic_matrix.todense())
+                c_m2 += 0.0001
+                c_m2 /= norm
+                kl_list.append(stats.symmetric_kl(c_m1.tolist(), c_m2.tolist()[0]))
+            kl_matrix.append(kl_list)
+        ouput = numpy.array(kl_matrix)
+        return ouput.mean(axis=0)
 
     def top_words(self, topic_id, num_words):
         vector = self.topic_word_matrix[topic_id]
@@ -46,49 +59,39 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
-    def top_documents(self, topic_id, num_docs):
-        vector = self.document_topic_matrix[:, topic_id]
-        weights = [0.0] * self.corpus.size
-        cx = vector.tocoo()
-        for doc_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
-            weights[doc_id] = weight
-        ordered_docs = list(numpy.argsort(weights).tolist())
-        # ordered_docs = reversed(ordered_docs)
-        return ordered_docs[:num_docs]
-
     def affiliation_repartition(self, topic_id):
         counts = {}
-        doc_ids = self.top_documents(topic_id, 15)
+        doc_ids = self.documents_for_topic(topic_id)
         for i in doc_ids:
-            affiliations = str(self.corpus.affiliations(i))
-            affiliation_list = affiliations.split(', ')
-            for affiliation in affiliation_list:
-                if counts.get(affiliation):
-                    count = counts[affiliation] + 1
-                    counts[affiliation] = count
-                else:
-                    counts[affiliation] = 1
+            affiliations = set(self.corpus.affiliations(i))
+            for affiliation in affiliations:
+                if str(affiliation) not in ['nan', '@gmail.com', '@yahoo.fr']:
+                    if counts.get(affiliation):
+                        count = counts[affiliation] + 1
+                        counts[affiliation] = count
+                    else:
+                        counts[affiliation] = 1
         return counts
 
     def topic_distribution_for_document(self, doc_id):
         vector = self.document_topic_matrix[doc_id]
         cx = vector.tocoo()
-        weights = [()] * self.nb_topics
+        weights = [0.0] * self.nb_topics
         for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
             weights[topic_id] = weight
         return weights
 
-    def most_likely_topic_for_document(self, doc_id):
-        weights = self.topic_distribution_for_document(doc_id)
-        return weights.index(max(weights))
-
     def topic_distribution_for_word(self, word_id):
         vector = self.topic_word_matrix[:, word_id]
         cx = vector.tocoo()
-        distribution = []
+        distribution = [0.0] * self.nb_topics
         for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
-            distribution.append(weight)
+            distribution[topic_id] = weight
         return distribution
+
+    def most_likely_topic_for_document(self, doc_id):
+        weights = self.topic_distribution_for_document(doc_id)
+        return weights.index(max(weights))
 
     def topic_frequency(self, topic, date=None):
         return self.topics_frequency(date=date)[topic]
@@ -103,6 +106,24 @@ class TopicModel(object):
             topic = self.most_likely_topic_for_document(i)
             frequency[topic] += 1.0/len(ids)
         return frequency
+
+    def documents_for_topic(self, topic_id):
+        doc_ids = []
+        for doc_id in range(self.corpus.size):
+            most_likely_topic = self.most_likely_topic_for_document(doc_id)
+            if most_likely_topic == topic_id:
+                doc_ids.append(doc_id)
+        return doc_ids
+
+    def similar_documents(self, doc_id, num_docs):
+        doc_weights = self.topic_distribution_for_document(doc_id)
+        similarities = []
+        for a_doc_id in range(self.corpus.size):
+            if a_doc_id != doc_id:
+                similarity = 1.0 - spatial.distance.cosine(doc_weights, self.topic_distribution_for_document(a_doc_id))
+                similarities.append((a_doc_id, similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return similarities[:num_docs]
 
     def documents_per_topic(self):
         topic_associations = {}
@@ -122,7 +143,7 @@ class LatentDirichletAllocation(TopicModel):
 
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
-        lda = models.LdaModel(corpus=self.corpus.gensim_tfidf,
+        lda = models.LdaModel(corpus=self.corpus.gensim_vector_space,
                               iterations=10000,
                               num_topics=num_topics)
         tmp_topic_word_matrix = list(lda.show_topics(num_topics=num_topics,
@@ -139,16 +160,17 @@ class LatentDirichletAllocation(TopicModel):
                 data.append(probability)
         self.topic_word_matrix = coo_matrix((data, (row, col)),
                                             shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
-        self.document_topic_matrix = numpy.transpose(matutils.corpus2dense(lda[self.corpus.gensim_tfidf],
-                                                                           num_topics,
-                                                                           self.corpus.size))
+        self.document_topic_matrix = sparse.csr_matrix(
+            numpy.transpose(matutils.corpus2dense(lda[self.corpus.gensim_vector_space],
+                                                  num_topics,
+                                                  self.corpus.size)))
 
 
 class LatentSemanticAnalysis(TopicModel):
 
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
-        lsa = models.LsiModel(corpus=self.corpus.gensim_tfidf,
+        lsa = models.LsiModel(corpus=self.corpus.gensim_vector_space,
                               id2word=self.corpus.vocabulary,
                               num_topics=num_topics)
         tmp_topic_word_matrix = list(lsa.show_topics(num_topics=num_topics,
@@ -165,7 +187,7 @@ class LatentSemanticAnalysis(TopicModel):
                 data.append(weight)
         self.topic_word_matrix = coo_matrix((data, (row, col)),
                                             shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
-        self.document_topic_matrix = numpy.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_tfidf],
+        self.document_topic_matrix = numpy.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_vector_space],
                                                                            num_topics,
                                                                            self.corpus.size))
 
@@ -175,7 +197,7 @@ class NonNegativeMatrixFactorization(TopicModel):
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
         nmf = NMF(n_components=num_topics, random_state=1)
-        topic_document = nmf.fit_transform(self.corpus.sklearn_tfidf)
+        topic_document = nmf.fit_transform(self.corpus.sklearn_vector_space)
         self.topic_word_matrix = []
         self.document_topic_matrix = []
         vocabulary_size = len(self.corpus.vocabulary)

@@ -52,6 +52,6 @@ def save_topic_cloud(topic_model, file_path):
         json.dump(json_graph, fp, indent=4, separators=(',', ': '))
 
 
-def save_author_network(json_graph, file_path):
+def save_json_object(json_object, file_path):
     with codecs.open(file_path, 'w', encoding='utf-8') as fp:
-        json.dump(json_graph, fp, indent=4, separators=(',', ': '))
+        json.dump(json_object, fp, indent=4, separators=(',', ': '))

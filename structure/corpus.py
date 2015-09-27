@@ -2,10 +2,12 @@
 from gensim import matutils
 from nltk.corpus import stopwords
 from nltk import wordpunct_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import networkx as nx
 import itertools
 import pandas
+from networkx.readwrite import json_graph
+from scipy import spatial
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -16,27 +18,36 @@ class Corpus:
     def __init__(self,
                  source_file_path,
                  language=None,
+                 vectorization='tfidf',
                  max_relative_frequency=0.95,
                  min_absolute_frequency=2,
-                 lemmatizer=None):
-        self.data_frame = pandas.read_csv(source_file_path, sep='\t', index_col=0, encoding='utf-8')
+                 preprocessor=None):
+        self.data_frame = pandas.read_csv(source_file_path, sep='\t', encoding='utf-8')
         self.size = self.data_frame.count(0)[0]
-        if lemmatizer is not None:
+        if preprocessor is not None:
             for i in self.data_frame.index.tolist():
                 full_content = self.data_frame.iloc[i]['full_content']
                 lemmatized_content = []
                 for word in wordpunct_tokenize(full_content.lower()):
-                    lemmatized_content.append(lemmatizer.get_lemma(word))
+                    lemmatized_content.append(preprocessor.get_lemma(word))
                 self.data_frame.loc[i, 'full_content'] = ' '.join(lemmatized_content)
         stop_words = []
         if language is not None:
             stop_words = stopwords.words(language)
-        self.vectorizer = TfidfVectorizer(max_df=max_relative_frequency,
-                                          min_df=min_absolute_frequency,
-                                          max_features=2000,
-                                          stop_words=stop_words)
-        self.sklearn_tfidf = self.vectorizer.fit_transform(self.data_frame['full_content'].tolist())
-        self.gensim_tfidf = matutils.Sparse2Corpus(self.sklearn_tfidf, documents_columns=False)
+        if vectorization == 'tfidf':
+            self.vectorizer = TfidfVectorizer(max_df=max_relative_frequency,
+                                              min_df=min_absolute_frequency,
+                                              max_features=2000,
+                                              stop_words=stop_words)
+        elif vectorization == 'tf':
+            self.vectorizer = CountVectorizer(max_df=max_relative_frequency,
+                                              min_df=min_absolute_frequency,
+                                              max_features=2000,
+                                              stop_words=stop_words)
+        else:
+            raise ValueError('Unknown vectorization type: %s' % vectorization)
+        self.sklearn_vector_space = self.vectorizer.fit_transform(self.data_frame['full_content'].tolist())
+        self.gensim_vector_space = matutils.Sparse2Corpus(self.sklearn_vector_space, documents_columns=False)
         vocab = self.vectorizer.get_feature_names()
         self.vocabulary = dict([(i, s) for i, s in enumerate(vocab)])
 
@@ -50,10 +61,10 @@ class Corpus:
         return self.data_frame.iloc[doc_id]['date']
 
     def authors(self, doc_id):
-        return self.data_frame.iloc[doc_id]['authors']
+        return unicode(self.data_frame.iloc[doc_id]['authors']).split(', ')
 
     def affiliations(self, doc_id):
-        return self.data_frame.iloc[doc_id]['affiliations']
+        return unicode(self.data_frame.iloc[doc_id]['affiliations']).split(', ')
 
     def documents_by_author(self, author):
         ids = []
@@ -77,48 +88,35 @@ class Corpus:
         return self.data_frame[self.data_frame['date'] == date].index.tolist()
 
     def vector_for_document(self, doc_id):
-        vector = self.sklearn_tfidf[doc_id]
+        vector = self.sklearn_vector_space[doc_id]
         cx = vector.tocoo()
-        word_list = [0.0] * len(self.vocabulary)
+        weights = [0.0] * len(self.vocabulary)
         for row, word_id, weight in itertools.izip(cx.row, cx.col, cx.data):
-            word_list[word_id] = weight
-        return word_list
+            weights[word_id] = weight
+        return weights
 
     def word_for_id(self, word_id):
         return self.vocabulary.get(word_id)
 
+    def similar_documents(self, doc_id, num_docs):
+        doc_weights = self.vector_for_document(doc_id)
+        similarities = []
+        for a_doc_id in range(self.size):
+            if a_doc_id != doc_id:
+                similarity = 1.0 - spatial.distance.cosine(doc_weights, self.vector_for_document(a_doc_id))
+                similarities.append((a_doc_id, similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return similarities[:num_docs]
+
     def collaboration_network(self, doc_ids=None):
         nx_graph = nx.Graph(name='')
-        json_graph = {}
-        json_nodes = []
-        json_links = []
-        if doc_ids is None:
-            doc_ids = range(self.size)
-        distinct_authors = set()
         for doc_id in doc_ids:
-            collaborators = self.authors(doc_id)
-            for collaborator in collaborators:
-                distinct_authors.add(collaborator)
-        node_array = list(distinct_authors)
-        nx_graph.add_nodes_from(node_array)
-        for doc_id in doc_ids:
-            collaborators = self.authors(doc_id)
-            for j in range(0, len(collaborators)):
-                for i in range(j+1, len(collaborators)):
-                    json_links.append({'source': node_array.index(collaborators[i]), 'target': node_array.index(collaborators[j]), 'value':1})
-                    nx_graph.add_edge(collaborators[i], collaborators[j])
-        node_array = []
-        group = 0
-        page_rank = nx.pagerank(nx_graph, alpha=0.85, max_iter=300)
-        for doc_id in doc_ids:
-            collaborators = self.authors(doc_id)
-            for author in collaborators:
-                if author not in node_array:
-                    node_array.append(author)
-                    json_nodes.append({'name': author,
-                                       'weight': page_rank.get(author)*10000,
-                                       'group': -1})
-            group += 1
-        json_graph['nodes'] = json_nodes
-        json_graph['links'] = json_links
-        return json_graph
+            authors = self.authors(doc_id)
+            for author in authors:
+                nx_graph.add_node(author)
+            for i in range(0, len(authors)):
+                for j in range(i+1, len(authors)):
+                    nx_graph.add_edge(authors[i], authors[j])
+        bb = nx.betweenness_centrality(nx_graph)
+        nx.set_node_attributes(nx_graph, 'betweenness', bb)
+        return json_graph.node_link_data(nx_graph)

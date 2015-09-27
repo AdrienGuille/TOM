@@ -1,5 +1,5 @@
 # coding: utf-8
-from nlp.lemmatizer import FrenchLefff
+from nlp.preprocessor import FrenchLemmatizer
 from nlp.topic_model import LatentDirichletAllocation, LatentSemanticAnalysis, NonNegativeMatrixFactorization
 from structure.corpus import Corpus
 from flask import Flask, render_template
@@ -13,18 +13,26 @@ __email__ = "adrien.guille@univ-lyon2.fr"
 # Flask Web server
 app = Flask(__name__)
 
+# Parameters
+max_tf = 0.8
+min_tf = 4
+lemmatizer = None
+num_topics = 20
+vectorization = 'tfidf'
+
 # Load corpus
 corpus = Corpus(source_file_path='../input/egc.csv',
                 language='french',
-                max_relative_frequency=0.8,
-                min_absolute_frequency=4,
-                lemmatizer=None)
+                vectorization=vectorization,
+                max_relative_frequency=max_tf,
+                min_absolute_frequency=min_tf,
+                preprocessor=None)
 print 'corpus size:', corpus.size
 print 'vocabulary size:', len(corpus.vocabulary)
 
 # Infer topics
 topic_model = NonNegativeMatrixFactorization(corpus=corpus)
-topic_model.infer_topics(num_topics=15)
+topic_model.infer_topics(num_topics=num_topics)
 topic_model.print_topics(num_words=10)
 
 # Clean the data directory
@@ -60,15 +68,24 @@ for word_id in range(len(topic_model.corpus.vocabulary)):
 topic_associations = topic_model.documents_per_topic()
 
 # Export per-topic author network
-# for topic_id in range(topic_model.nb_topics):
-#     utils.save_author_network(corpus.collaboration_network(topic_affiliations[topic_id]), 'static/data/author_network'+str(topic_id)+'.json')
+for topic_id in range(topic_model.nb_topics):
+    utils.save_json_object(corpus.collaboration_network(topic_associations[topic_id]),
+                           'static/data/author_network'+str(topic_id)+'.json')
 
 
 @app.route('/')
 def index():
     return render_template('index.html',
                            topic_ids=range(topic_model.nb_topics),
-                           doc_ids=range(corpus.size))
+                           doc_ids=range(corpus.size),
+                           method=type(topic_model).__name__,
+                           corpus_size=corpus.size,
+                           vocabulary_size=len(corpus.vocabulary),
+                           max_tf=max_tf,
+                           min_tf=min_tf,
+                           vectorization=vectorization,
+                           preprocessor=type(lemmatizer).__name__,
+                           num_topics=num_topics)
 
 
 @app.route('/topic_cloud.html')
@@ -85,7 +102,6 @@ def vocabulary():
         word_list.append((i, corpus.word_for_id(i)))
     splitted_vocabulary = []
     words_per_column = int(len(corpus.vocabulary)/5)
-    print words_per_column, 'words per column'
     for j in range(5):
         sub_vocabulary = []
         for l in range(j*words_per_column, (j+1)*words_per_column):
@@ -98,15 +114,21 @@ def vocabulary():
                            vocabulary_size=len(word_list))
 
 
+@app.route('/author_topic_graph.html')
+def author_topic_graph():
+    return render_template('author_topic_graph.html',
+                           topic_ids=range(topic_model.nb_topics),
+                           doc_ids=range(corpus.size))
+
+
 @app.route('/topic/<tid>.html')
 def topic_details(tid):
     ids = topic_associations[int(tid)]
     documents = []
     for document_id in ids:
         documents.append((corpus.short_content(document_id).capitalize(),
-                          corpus.authors(document_id),
+                          ', '.join(corpus.authors(document_id)),
                           corpus.date(document_id), document_id))
-    documents.pop(0)
     return render_template('topic.html',
                            topic_id=tid,
                            frequency=round(topic_model.topic_frequency(int(tid))*100, 2),
@@ -120,16 +142,23 @@ def document_details(did):
     vector = topic_model.corpus.vector_for_document(int(did))
     word_list = []
     for a_word_id in range(len(vector)):
-        word_list.append((corpus.word_for_id(a_word_id), vector[a_word_id], a_word_id))
+        word_list.append((corpus.word_for_id(a_word_id), round(vector[a_word_id], 3), a_word_id))
     word_list.sort(key=lambda x: x[1])
     word_list.reverse()
+    documents = []
+    for another_doc in corpus.similar_documents(int(did), 5):
+        documents.append((corpus.short_content(another_doc[0]).capitalize(),
+                          ', '.join(corpus.authors(another_doc[0])),
+                          corpus.date(another_doc[0]), another_doc[0], round(another_doc[1], 3)))
     return render_template('document.html',
                            doc_id=did,
-                           words=word_list[:25],
+                           words=word_list[:21],
                            topic_ids=range(topic_model.nb_topics),
                            doc_ids=range(corpus.size),
-                           authors=corpus.authors(int(did)),
-                           year=corpus.date(int(did)))
+                           documents=documents,
+                           authors=', '.join(corpus.authors(int(did))),
+                           year=corpus.date(int(did)),
+                           short_content=corpus.short_content(int(did)))
 
 
 @app.route('/word/<wid>.html')
@@ -137,7 +166,7 @@ def word_details(wid):
     documents = []
     for document_id in corpus.docs_for_word(int(wid)):
         documents.append((corpus.short_content(document_id).capitalize(),
-                          corpus.authors(document_id),
+                          ', '.join(corpus.authors(document_id)),
                           corpus.date(document_id), document_id))
     return render_template('word.html',
                            word_id=wid,

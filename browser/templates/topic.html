@@ -46,7 +46,7 @@
         <select onChange="window.location.href=((this.value == 'topics') ? '../topic_cloud.html' : '../vocabulary.html')">
             <option selected="selected" disabled="disabled">Overview</option>
             <option>topics</option>
-            <option>articles</option>
+            <option>vocabulary</option>
         </select>
         -
         <select onChange="window.location.href='../topic/'+this.value+'.html'">
@@ -75,7 +75,7 @@
             <line-chart></line-chart>
             <h2>Author network</h2>
             <author-network></author-network>
-            <h2>Number of documents among top 15</h2>
+            <h2>Number of documents per institution</h2>
             <bar-chart2></bar-chart2>
         </div>
         <div id="right_column">
@@ -95,7 +95,6 @@
     </div>
 </body>
 <script src="{{ url_for('static', filename = 'js/d3.min.js' )}}"></script>
-<script src="{{ url_for('static', filename = 'js/d3-tip.js' )}}"></script>
 <script>
 // (document.body.clientWidth)*0.6
 var margin = {top: 10, right: 0, bottom: 100, left: 40},
@@ -146,7 +145,6 @@ d3.tsv("{{ url_for('static', filename = 'data/word_distribution'+topic_id+'.tsv'
       .attr("y", function(d) { return y(d.weight); })
       .attr("height", function(d) { return height - y(d.weight); })
 });
-
 function type(d) {
   d.weight = +d.weight;
   return d;
@@ -207,48 +205,39 @@ d3.tsv("{{ url_for('static', filename = 'data/frequency'+topic_id+'.tsv') }}", f
 </script>
 <script>
 var width3 = 600,
-    height3 = 600;
-
+    height3 = 400;
 var force = d3.layout.force()
     .charge(-50)
     .linkDistance(20)
     .size([width3, height3]);
-
 var svg3 = d3.select("author-network").append("svg")
     .attr("width", width3)
     .attr("height", height3);
-
 d3.json("{{ url_for('static', filename = 'data/author_network'+topic_id+'.json') }}", function(error, graph) {
   if (error) throw error;
-
   force
       .nodes(graph.nodes)
       .links(graph.links)
       .start();
-
   var link = svg3.selectAll(".link")
       .data(graph.links)
     .enter().append("line")
       .attr("class", "link")
       .style("stroke-width", 1);
-
   var node3 = svg3.selectAll(".node")
       .data(graph.nodes)
     .enter().append("circle")
       .attr("class", "node")
-      .attr("r", function(d) { return d.weight; })
+      .attr("r", function(d) { return 5+d.betweenness*100; })
       .style("fill", "red")
       .call(force.drag);
-
   node3.append("title")
       .text(function(d) { return d.name; });
-
   force.on("tick", function() {
     link.attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
-
     node3.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
   });

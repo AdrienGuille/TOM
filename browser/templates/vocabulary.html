@@ -2,34 +2,34 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html">
-  <title>Vocabulaire intégral</title>
+  <title>Vocabulary</title>
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/style.css') }}"/>
 </head>
 <body>
     <div id="navigation">
         <select onChange="window.location.href=((this.value == 'topics') ? 'topic_cloud.html' : 'vocabulary.html')">
-            <option selected="selected" disabled="disabled">Vue globale</option>
-            <option>thématiques</option>
-            <option>articles</option>
+            <option selected="selected" disabled="disabled">Overview</option>
+            <option>topics</option>
+            <option>vocabulary</option>
         </select>
         -
         <select onChange="window.location.href='topic/'+this.value+'.html'">
-            <option selected="selected" disabled="disabled">Détails à propos d'une thématique</option>
+            <option selected="selected" disabled="disabled">Details about a topic</option>
             {% for i in topic_ids %}
                 <option>{{ i }}</option>
             {% endfor %}
         </select>
         -
         <select onChange="window.location.href='document/'+this.value+'.html'">
-            <option selected="selected" disabled="disabled">Détails à propos d'un article</option>
+            <option selected="selected" disabled="disabled">Details about a document</option>
             {% for j in doc_ids %}
                 <option>{{ j }}</option>
             {% endfor %}
         </select>
     </div>
     <div id="header">
-        <h1>Vocabulaire intégral</h1>
-        Nombre de mots : {{ vocabulary_size }}
+        <h1>Vocabulary</h1>
+        Number of words : {{ vocabulary_size }}
     </div>
     <div id="wrap">
     {% for vocabulary in splitted_vocabulary %}

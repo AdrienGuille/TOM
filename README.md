@@ -1,8 +1,6 @@
 # TOM
 
-TOM (TOpic Modeling) is a python library for topic modeling and exploration. It features functions for preprocessing (stemming, lemmatizing, 
-vectorizing) text and provides a common interface for several topic models (LSA, LDA, NMF). It also features a Web-based 
-topic/document browser (see screenshots below).
+TOM (TOpic Modeling) is a python library for topic modeling and exploration. It features functions to preprocess (stemming, lemmatizing, vectorizing) text as well as functions to estimate the optimal number of topics. It provides a common interface for several topic models (LSA, LDA, NMF). It also features a Web-based topic/document explorer (see screenshots below).
 
 ## Documentation
 
@@ -53,7 +51,7 @@ print '\nTopic 2 frequency:', topic_model.topic_frequency(2)
 print '\nTop 10 most likely words for topic 2:', topic_model.top_words(2, 10)
 ```
 
-## Topic/document browser
+## Topic/document explorer
 
 ### Topic cloud
 ![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/topic_cloud.jpg)

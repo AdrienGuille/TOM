@@ -27,7 +27,7 @@ topic_model = LatentDirichletAllocation(corpus=corpus)
 
 # Estimating the optimal number of topics using the method proposed by Arun et al.
 viz = Visualization(topic_model)
-viz.plot_arun_metric(10, 50, '/Users/adrien/Desktop/arun.png')
+viz.plot_arun_metric(10, 30, 5, '/Users/adrien/Desktop/arun.png')
 
 # Infer topics
 topic_model.infer_topics(num_topics=20)
@@ -41,5 +41,4 @@ print '\nMost likely topic for document 2:', topic_model.most_likely_topic_for_d
 print '\nTopics frequency:', topic_model.topics_frequency()
 print '\nTopic 2 frequency:', topic_model.topic_frequency(2)
 print '\nTop 10 most likely words for topic 2:', topic_model.top_words(2, 10)
-print '\nEstimating the optimal number of topics:', topic_model.arun_metric(min_num_topics=10, max_num_topics=20)
 

@@ -40,8 +40,8 @@ class Visualization:
         plt.xlabel('word')
         plt.savefig(file_path)
 
-    def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, file_path='output/arun.png'):
-        symmetric_kl_divergence = self.topic_model.arun_metric(min_num_topics, max_num_topics)
+    def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10, file_path='output/arun.png'):
+        symmetric_kl_divergence = self.topic_model.arun_metric(min_num_topics, max_num_topics, iterations)
         plt.clf()
         plt.plot(range(min_num_topics, max_num_topics+1), symmetric_kl_divergence)
         plt.title('Arun et al. metric')

@@ -8,7 +8,7 @@ import itertools
 import pandas
 from networkx.readwrite import json_graph
 from scipy import spatial
-
+import random
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
@@ -21,8 +21,19 @@ class Corpus:
                  vectorization='tfidf',
                  max_relative_frequency=0.95,
                  min_absolute_frequency=2,
-                 preprocessor=None):
+                 preprocessor=None,
+                 sample=None):
+
+        self._source_file_path = source_file_path
+        self._language = language
+        self._vectorization = vectorization
+        self._max_relative_frequency = max_relative_frequency
+        self._min_absolute_frequency = min_absolute_frequency
+        self._preprocessor = preprocessor
+
         self.data_frame = pandas.read_csv(source_file_path, sep='\t', encoding='utf-8')
+        if sample:
+            self.data_frame = self.data_frame.sample(frac=0.8)
         self.size = self.data_frame.count(0)[0]
         if preprocessor is not None:
             for i in self.data_frame.index.tolist():

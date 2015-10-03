@@ -40,6 +40,19 @@ class Visualization:
         plt.xlabel('word')
         plt.savefig(file_path)
 
+    def plot_greene_metric(self, min_num_topics=10, max_num_topics=20, tao=10, step=5,
+                           top_n_words=10, file_path='output/greene.png'):
+        greene_stability = self.topic_model.greene_metric(min_num_topics=min_num_topics, max_num_topics=max_num_topics,
+                                                          step=step, top_n_words=top_n_words, tao=tao)
+        plt.clf()
+        plt.plot(np.arange(min_num_topics, max_num_topics+1, step), greene_stability)
+        plt.title('Greene et al. metric')
+        plt.xlabel('number of topics')
+        plt.ylabel('Greene metric')
+        plt.savefig(file_path)
+
+
+
     def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10, file_path='output/arun.png'):
         symmetric_kl_divergence = self.topic_model.arun_metric(min_num_topics, max_num_topics, iterations)
         plt.clf()

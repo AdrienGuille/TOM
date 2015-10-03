@@ -27,7 +27,9 @@ topic_model = LatentDirichletAllocation(corpus=corpus)
 
 # Estimating the optimal number of topics using the method proposed by Arun et al.
 viz = Visualization(topic_model)
-viz.plot_arun_metric(10, 30, 5, '/Users/adrien/Desktop/arun.png')
+viz.plot_greene_metric(min_num_topics=10, max_num_topics=12, tao=10, step=1,
+                           top_n_words=10, file_path='output/greene.png')
+# viz.plot_arun_metric(10, 30, 5, '/Users/adrien/Desktop/arun.png')
 
 # Infer topics
 topic_model.infer_topics(num_topics=20)

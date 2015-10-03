@@ -1,9 +1,18 @@
 # coding: utf-8
 import codecs
 import json
+import pickle
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
+
+
+def save_topic_model(topic_model, file_path):
+    pickle.dump(topic_model, open(file_path, 'wb'))
+
+
+def load_topic_model(file_path):
+    return pickle.load(open(file_path, 'rb'))
 
 
 def save_word_distribution(distribution, file_path):
@@ -30,7 +39,7 @@ def save_topic_evolution(evolution, file_path):
 def save_affiliation_repartition(affiliation_repartition, file_path):
     with codecs.open(file_path, 'w', encoding='utf-8') as f:
         f.write('affiliation\tcount\n')
-        for affiliation, count in affiliation_repartition.items():
+        for (affiliation, count) in affiliation_repartition:
             f.write(affiliation+'\t'+str(count)+'\n')
 
 

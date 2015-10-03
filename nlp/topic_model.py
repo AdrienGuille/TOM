@@ -1,16 +1,16 @@
 # coding: utf-8
 from abc import ABCMeta, abstractmethod
 import itertools
-
+from structure.corpus import Corpus
 from gensim import models, matutils
 from sklearn.decomposition import NMF
-import numpy
+import numpy as np
 from scipy.sparse import coo_matrix
 from scipy import spatial, sparse
 
 import stats
 
-__author__ = "Adrien Guille"
+__author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
 
@@ -36,17 +36,15 @@ class TopicModel(object):
 
     def greene_metric(self, min_num_topics=10, step=5, max_num_topics=50, top_n_words=10, tao=10):
         """
-        Implements Greene metric to compute the optimal number of topics. Tanek from How Many Topics?
+        Implements Greene metric to compute the optimal number of topics. Taken from How Many Topics?
         Stability Analysis for Topic Models from Greene et al. 2014.
         :param step:
-        :param min_num_topics: Maximum number of topics to test
-        :param max_num_topics: Minimum number of topics to test
+        :param min_num_topics: Minimum number of topics to test
+        :param max_num_topics: Maximum number of topics to test
         :param top_n_words: Top n words for topic to use
         :param tao: Number of sampled models to build
         :return: A list of len (max_num_topics - min_num_topics) with the stability of each tested k
         """
-        import numpy as np
-        from structure.corpus import Corpus
         stability = []
         # Build reference topic model
         # Generate tao topic models with tao samples of the corpus
@@ -66,25 +64,34 @@ class TopicModel(object):
                 tao_model.infer_topics(k)
                 tao_rank = [list(zip(*tao_model.top_words(i, top_n_words))[0]) for i in range(k)]
                 agreement_score_list.append(stats.agreement_score(reference_rank, tao_rank))
-
             stability.append(np.mean(agreement_score_list))
         return stability
 
     def arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
+        """
+        Implements Arun metric to estimate the optimal number of topics:
+        Arun, R., V. Suresh, C. V. Madhavan, and M. N. Murthy
+        On finding the natural number of topics with latent dirichlet allocation: Some observations.
+        In PAKDD (2010), pp. 391–402.
+        :param min_num_topics: Minimum number of topics to test
+        :param max_num_topics: Maximum number of topics to test
+        :param iterations: Number of iterations per value of k
+        :return: A list of len (max_num_topics - min_num_topics) with the average symmetric KL divergence for each k
+        """
         kl_matrix = []
         for j in range(iterations):
             kl_list = []
-            l = numpy.array([sum(self.corpus.vector_for_document(doc_id)) for doc_id in range(self.corpus.size)])
-            norm = numpy.linalg.norm(l)
+            l = np.array([sum(self.corpus.vector_for_document(doc_id)) for doc_id in range(self.corpus.size)])
+            norm = np.linalg.norm(l)
             for i in range(min_num_topics, max_num_topics + 1):
                 self.infer_topics(i)
-                c_m1 = numpy.linalg.svd(self.topic_word_matrix.todense(), compute_uv=False)
+                c_m1 = np.linalg.svd(self.topic_word_matrix.todense(), compute_uv=False)
                 c_m2 = l.dot(self.document_topic_matrix.todense())
                 c_m2 += 0.0001
                 c_m2 /= norm
                 kl_list.append(stats.symmetric_kl(c_m1.tolist(), c_m2.tolist()[0]))
             kl_matrix.append(kl_list)
-        ouput = numpy.array(kl_matrix)
+        ouput = np.array(kl_matrix)
         return ouput.mean(axis=0)
 
     def top_words(self, topic_id, num_words):
@@ -197,9 +204,9 @@ class LatentDirichletAllocation(TopicModel):
         self.topic_word_matrix = coo_matrix((data, (row, col)),
                                             shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
         self.document_topic_matrix = sparse.csr_matrix(
-            numpy.transpose(matutils.corpus2dense(lda[self.corpus.gensim_vector_space],
-                                                  num_topics,
-                                                  self.corpus.size)))
+            np.transpose(matutils.corpus2dense(lda[self.corpus.gensim_vector_space],
+                                               num_topics,
+                                               self.corpus.size)))
 
 
 class LatentSemanticAnalysis(TopicModel):
@@ -222,9 +229,9 @@ class LatentSemanticAnalysis(TopicModel):
                 data.append(weight)
         self.topic_word_matrix = coo_matrix((data, (row, col)),
                                             shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
-        self.document_topic_matrix = numpy.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_vector_space],
-                                                                           num_topics,
-                                                                           self.corpus.size))
+        self.document_topic_matrix = np.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_vector_space],
+                                                                        num_topics,
+                                                                        self.corpus.size))
 
 
 class NonNegativeMatrixFactorization(TopicModel):

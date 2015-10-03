@@ -9,7 +9,8 @@ import pandas
 from networkx.readwrite import json_graph
 from scipy import spatial
 import random
-__author__ = "Adrien Guille"
+
+__author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
 
@@ -34,6 +35,7 @@ class Corpus:
         self.data_frame = pandas.read_csv(source_file_path, sep='\t', encoding='utf-8')
         if sample:
             self.data_frame = self.data_frame.sample(frac=0.8)
+        self.data_frame.fillna(' ')
         self.size = self.data_frame.count(0)[0]
         if preprocessor is not None:
             for i in self.data_frame.index.tolist():
@@ -77,9 +79,12 @@ class Corpus:
     def affiliations(self, doc_id):
         return unicode(self.data_frame.iloc[doc_id]['affiliations']).split(', ')
 
-    def documents_by_author(self, author):
+    def documents_by_author(self, author, date=None):
         ids = []
-        for i in range(self.size):
+        potential_ids = range(self.size)
+        if date:
+            potential_ids = self.doc_ids(date)
+        for i in potential_ids:
             if self.is_author(author, i):
                 ids.append(i)
         return ids

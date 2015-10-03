@@ -27,18 +27,20 @@ def average_jaccard(r_i, r_j):
         raise Exception("Ranked lists should have at least one element.")
     if len(r_i) != len(r_j):
         raise Exception("Both ranked term list should have the same dimension.")
-    jacc_sum = [myjaccard(r_i[:d+1], r_j[:d+1]) for d in range(len(r_i))]
-#     print jacc_sum
+    jacc_sum = [myjaccard(r_i[:d + 1], r_j[:d + 1]) for d in range(len(r_i))]
+    #     print jacc_sum
     return sum(jacc_sum) / float(len(r_i))
+
 
 def jaccard_similarity_matrix(s_x, s_y):
     k = len(s_x)
     m = np.zeros((k, k))
     for i in range(k):
         for j in range(k):
-            m[i,j] = average_jaccard(s_x[i], s_y[j])
-#     print m
+            m[i, j] = average_jaccard(s_x[i], s_y[j])
+        #     print m
     return m
+
 
 def agreement_score(s_x, s_y):
     if not s_x or not s_y:

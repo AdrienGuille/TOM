@@ -7,7 +7,7 @@ from scipy.sparse import coo_matrix
 import stats
 import itertools
 from scipy import spatial, sparse
-
+import random
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -32,6 +32,14 @@ class TopicModel(object):
             for weighted_word in self.top_words(topic_id, num_words):
                 word_list.append(weighted_word[0])
             print 'topic', topic_id, ': ', ' '.join(word_list)
+
+    def greene_metric(self, min_num_topics=10, max_num_topics=50, d=10):
+        import numpy as np
+        reference_k = random.randint(min_num_topics, max_num_topics)
+        self.infer_topics(reference_k)
+        s_reference = [self.top_words(i,d) for i in range(reference_k)]
+        self.corpus
+        pass
 
     def arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
         kl_matrix = []

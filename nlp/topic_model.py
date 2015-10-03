@@ -1,13 +1,14 @@
 # coding: utf-8
 from abc import ABCMeta, abstractmethod
+import itertools
+
 from gensim import models, matutils
 from sklearn.decomposition import NMF
 import numpy
 from scipy.sparse import coo_matrix
-import stats
-import itertools
 from scipy import spatial, sparse
-import random
+
+import stats
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -33,13 +34,41 @@ class TopicModel(object):
                 word_list.append(weighted_word[0])
             print 'topic', topic_id, ': ', ' '.join(word_list)
 
-    def greene_metric(self, min_num_topics=10, max_num_topics=50, d=10):
+    def greene_metric(self, min_num_topics=10, step=5, max_num_topics=50, top_n_words=10, tao=10):
+        """
+        Implements Greene metric to compute the optimal number of topics. Tanek from How Many Topics?
+        Stability Analysis for Topic Models from Greene et al. 2014.
+        :param step:
+        :param min_num_topics: Maximum number of topics to test
+        :param max_num_topics: Minimum number of topics to test
+        :param top_n_words: Top n words for topic to use
+        :param tao: Number of sampled models to build
+        :return: A list of len (max_num_topics - min_num_topics) with the stability of each tested k
+        """
         import numpy as np
-        reference_k = random.randint(min_num_topics, max_num_topics)
-        self.infer_topics(reference_k)
-        s_reference = [self.top_words(i,d) for i in range(reference_k)]
-        self.corpus
-        pass
+        from structure.corpus import Corpus
+        stability = []
+        # Build reference topic model
+        # Generate tao topic models with tao samples of the corpus
+        for k in np.arange(min_num_topics, max_num_topics + 1, step):
+            self.infer_topics(k)
+            reference_rank = [list(zip(*self.top_words(i, top_n_words))[0]) for i in range(k)]
+            agreement_score_list = []
+            for t in range(tao):
+                tao_corpus = Corpus(source_file_path=self.corpus._source_file_path,
+                                    language=self.corpus._language,
+                                    vectorization=self.corpus._vectorization,
+                                    max_relative_frequency=self.corpus._max_relative_frequency,
+                                    min_absolute_frequency=self.corpus._min_absolute_frequency,
+                                    preprocessor=self.corpus._preprocessor,
+                                    sample=True)
+                tao_model = type(self)(tao_corpus)
+                tao_model.infer_topics(k)
+                tao_rank = [list(zip(*tao_model.top_words(i, top_n_words))[0]) for i in range(k)]
+                agreement_score_list.append(stats.agreement_score(reference_rank, tao_rank))
+
+            stability.append(np.mean(agreement_score_list))
+        return stability
 
     def arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
         kl_matrix = []
@@ -47,7 +76,7 @@ class TopicModel(object):
             kl_list = []
             l = numpy.array([sum(self.corpus.vector_for_document(doc_id)) for doc_id in range(self.corpus.size)])
             norm = numpy.linalg.norm(l)
-            for i in range(min_num_topics, max_num_topics+1):
+            for i in range(min_num_topics, max_num_topics + 1):
                 self.infer_topics(i)
                 c_m1 = numpy.linalg.svd(self.topic_word_matrix.todense(), compute_uv=False)
                 c_m2 = l.dot(self.document_topic_matrix.todense())
@@ -112,7 +141,7 @@ class TopicModel(object):
             ids = self.corpus.doc_ids(date)
         for i in ids:
             topic = self.most_likely_topic_for_document(i)
-            frequency[topic] += 1.0/len(ids)
+            frequency[topic] += 1.0 / len(ids)
         return frequency
 
     def documents_for_topic(self, topic_id):
@@ -148,7 +177,6 @@ class TopicModel(object):
 
 
 class LatentDirichletAllocation(TopicModel):
-
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
         lda = models.LdaModel(corpus=self.corpus.gensim_vector_space,
@@ -175,7 +203,6 @@ class LatentDirichletAllocation(TopicModel):
 
 
 class LatentSemanticAnalysis(TopicModel):
-
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
         lsa = models.LsiModel(corpus=self.corpus.gensim_vector_space,
@@ -201,7 +228,6 @@ class LatentSemanticAnalysis(TopicModel):
 
 
 class NonNegativeMatrixFactorization(TopicModel):
-
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
         nmf = NMF(n_components=num_topics, random_state=1)

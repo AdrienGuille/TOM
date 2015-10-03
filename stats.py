@@ -51,6 +51,6 @@ def agreement_score(s_x, s_y):
     m = jaccard_similarity_matrix(s_x, s_y)
     agree_sum = []
     for i in range(k):
-        agree_sum.append(m[i,].max())
+        agree_sum.append(m[i, ].max())
     agree_sum = [m[i,].max() for i in range(k)]
     return sum(agree_sum) / k

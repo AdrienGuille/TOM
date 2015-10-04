@@ -1,4 +1,6 @@
-# coding: utf-8
+# coding: utf-8"
+import matplotlib as mpl
+mpl.use("Agg") # To be able to create figures on a headless server (no DISPLAY variable)
 import matplotlib.pyplot as plt
 import codecs
 import numpy as np

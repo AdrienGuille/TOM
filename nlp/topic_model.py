@@ -94,6 +94,34 @@ class TopicModel(object):
         ouput = np.array(kl_matrix)
         return ouput.mean(axis=0)
 
+    def consensus_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
+        """
+        Implements a consensus-based metric to estimate the optimal number of topics:
+        Brunet, J.P., Tamayo, P., Golub, T.R., Mesirov, J.P.
+        Metagenes and molecular pattern discovery using matrix factorization.
+        Proc. National Academy of Sciences 101(12) (2004), pp. 4164–4169
+        :param min_num_topics:
+        :param max_num_topics:
+        :param iterations:
+        :return:
+        """
+        connectivity_matrices = []
+        for i in range(min_num_topics, max_num_topics+1):
+            for j in range(iterations):
+                connectivity_matrix = []
+                self.infer_topics(i)
+                for p in range(self.corpus.size):
+                    connectivity_vector = []
+                    for q in range(self.corpus.size):
+                        value = 0
+                        if self.most_likely_topic_for_document(p) == self.most_likely_topic_for_document(q):
+                            value = 1
+                        connectivity_vector.append(value)
+                    connectivity_matrix.append(connectivity_vector)
+                connectivity_matrices.append(connectivity_matrix)
+            consensus_matrix = np.array(connectivity_matrices).mean(axis=2)
+        return ''
+
     def top_words(self, topic_id, num_words):
         vector = self.topic_word_matrix[topic_id]
         cx = vector.tocoo()
@@ -115,7 +143,11 @@ class TopicModel(object):
                         counts[affiliation] = count
                     else:
                         counts[affiliation] = 1
-        return counts
+        tuples = []
+        for affiliation, count in counts.iteritems():
+            tuples.append((affiliation, count))
+        tuples.sort(key=lambda x: x[1], reverse=True)
+        return tuples
 
     def topic_distribution_for_document(self, doc_id):
         vector = self.document_topic_matrix[doc_id]
@@ -129,7 +161,7 @@ class TopicModel(object):
         vector = self.topic_word_matrix[:, word_id]
         cx = vector.tocoo()
         distribution = [0.0] * self.nb_topics
-        for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for topic_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
             distribution[topic_id] = weight
         return distribution
 

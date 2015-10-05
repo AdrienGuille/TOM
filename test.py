@@ -27,10 +27,10 @@ topic_model = NonNegativeMatrixFactorization(corpus=corpus)
 
 # Estimate the optimal number of topics
 viz = Visualization(topic_model)
-viz.plot_greene_metric(min_num_topics=10, max_num_topics=12, tao=2, step=1,
+viz.plot_greene_metric(min_num_topics=10, max_num_topics=30, tao=10, step=1,
                        top_n_words=10, file_path='output/greene.png')
-viz.plot_arun_metric(min_num_topics=10, max_num_topics=30,
-                     iterations=5, file_path='output/arun.png')
+# viz.plot_arun_metric(min_num_topics=10, max_num_topics=30,
+#                      iterations=5, file_path='output/arun.png')
 
 # Infer topics
 topic_model.infer_topics(num_topics=20)

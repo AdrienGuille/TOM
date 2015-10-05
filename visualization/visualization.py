@@ -1,5 +1,7 @@
 # coding: utf-8"
 import matplotlib as mpl
+from utils import save_topic_number_metrics_data
+
 mpl.use("Agg") # To be able to create figures on a headless server (no DISPLAY variable)
 import matplotlib.pyplot as plt
 import codecs
@@ -52,7 +54,8 @@ class Visualization:
         plt.xlabel('number of topics')
         plt.ylabel('Greene metric')
         plt.savefig(file_path)
-
+        save_topic_number_metrics_data(file_path[:-4] + ".tsv", range_=(min_num_topics, max_num_topics),
+                                       data=greene_stability, metric_type="greene")
 
 
     def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10, file_path='output/arun.png'):

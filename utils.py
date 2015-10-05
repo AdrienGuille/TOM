@@ -43,6 +43,16 @@ def save_affiliation_repartition(affiliation_repartition, file_path):
             f.write(affiliation+'\t'+str(count)+'\n')
 
 
+def save_topic_number_metrics_data(path, range_, data, step=None, metric_type="greene"):
+    import numpy as np
+    with open(path, "wb") as filo:
+        filo.write("k\t{}_value\n".format(metric_type))
+        for idx, range_i in enumerate(np.arange(range_[0], range_[1] + 1, step)):
+            filo.write("{0}\t{1}\n".format(range_i, data[idx]))
+
+
+
+
 def save_topic_cloud(topic_model, file_path):
     json_graph = {}
     json_nodes = []

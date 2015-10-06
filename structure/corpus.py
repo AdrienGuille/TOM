@@ -61,6 +61,9 @@ class Corpus:
         vocab = self.vectorizer.get_feature_names()
         self.vocabulary = dict([(i, s) for i, s in enumerate(vocab)])
 
+    def export(self, file_path):
+        self.data_frame.to_csv(path_or_buf=file_path, sep='\t', encoding='utf-8')
+
     def full_content(self, doc_id):
         return self.data_frame.iloc[doc_id]['full_content']
 

@@ -3,9 +3,25 @@ import codecs
 from abc import ABCMeta, abstractmethod
 from nltk.stem import WordNetLemmatizer
 from nltk import wordpunct_tokenize
+from nltk.stem.snowball import EnglishStemmer as SnowballEnglishStemmer
+from nltk.corpus.reader import wordnet
+import nltk
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
+
+
+def to_wordnet_tag(treebank_tag):
+        if treebank_tag.startswith('J'):
+            return wordnet.ADJ
+        elif treebank_tag.startswith('V'):
+            return wordnet.VERB
+        elif treebank_tag.startswith('N'):
+            return wordnet.NOUN
+        elif treebank_tag.startswith('R'):
+            return wordnet.ADV
+        else:
+            return ''
 
 
 class PreProcessor(object):
@@ -16,34 +32,45 @@ class PreProcessor(object):
         pass
 
     @abstractmethod
-    def process_sentence(self, word):
+    def process_sentence(self, sentence):
         pass
 
 
 class FrenchLemmatizer(PreProcessor):
 
     def __init__(self):
-        input_file = codecs.open('nlp/lexicons/lefff-3.4.mlex', 'r', encoding='utf-8')
-        self.table = {}
-        for line in input_file:
-            line = line.lower()
-            entry = line.split('\t')
-            self.table[entry[0]] = entry[2]
+        self.nothin = ''
 
-    def process_sentence(self, word):
-        lemma = self.table.get(word)
-        if lemma is None:
-            lemma = word
-        return lemma
+    def process_sentence(self, sentence):
+        return ''
 
 
 class EnglishStemmer(PreProcessor):
 
     def __init__(self):
-        self.wordnet = WordNetLemmatizer()
+        self.stemmer = SnowballEnglishStemmer()
 
     def process_sentence(self, sentence):
-        output = []
-        for word in wordpunct_tokenize(sentence):
-            output.append(self.wordnet.lemmatize(word))
-        return ' '.join(output)
+        stemmed_sentence = []
+        for token in wordpunct_tokenize(sentence):
+            if len(token) > 1:
+                stemmed_sentence.append(self.stemmer.stem(token))
+        return ' '.join(stemmed_sentence)
+
+
+class EnglishLemmatizer(PreProcessor):
+
+    def __init__(self, skip_token_without_pos):
+        self.lemmatizer = WordNetLemmatizer()
+        self.skip = skip_token_without_pos
+
+    def process_sentence(self, sentence):
+        tokenized_sentence = nltk.word_tokenize(sentence)
+        lemmatized_sentence = []
+        for token, treebank_pos_tag in nltk.pos_tag(tokenized_sentence):
+            wordnet_pos_tag = to_wordnet_tag(treebank_pos_tag)
+            if wordnet_pos_tag != '':
+                lemmatized_sentence.append(self.lemmatizer.lemmatize(token, wordnet_pos_tag).lower())
+            elif not self.skip and len(token) > 1:
+                lemmatized_sentence.append(token.lower())
+        return ' '.join(lemmatized_sentence)

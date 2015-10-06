@@ -46,4 +46,4 @@ class EnglishStemmer(PreProcessor):
         output = []
         for word in wordpunct_tokenize(sentence):
             output.append(self.wordnet.lemmatize(word))
-        return
+        return ' '.join(output)

@@ -45,7 +45,7 @@ class Visualization:
         plt.savefig(file_path)
 
     def plot_greene_metric(self, min_num_topics=10, max_num_topics=20, tao=10, step=5,
-                           top_n_words=10, file_path='output/greene.png'):
+                           top_n_words=10):
         greene_stability = self.topic_model.greene_metric(min_num_topics=min_num_topics, max_num_topics=max_num_topics,
                                                           step=step, top_n_words=top_n_words, tao=tao)
         plt.clf()
@@ -53,19 +53,20 @@ class Visualization:
         plt.title('Greene et al. metric')
         plt.xlabel('number of topics')
         plt.ylabel('Greene metric')
-        plt.savefig(file_path)
-        save_topic_number_metrics_data(file_path[:-4] + ".tsv", range_=(min_num_topics, max_num_topics),
-                                       data=greene_stability, metric_type="greene")
+        plt.savefig('output/greene.png')
+        save_topic_number_metrics_data('output/greene.tsv', range_=(min_num_topics, max_num_topics),
+                                       data=greene_stability, metric_type='greene')
 
-
-    def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10, file_path='output/arun.png'):
+    def plot_arun_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
         symmetric_kl_divergence = self.topic_model.arun_metric(min_num_topics, max_num_topics, iterations)
         plt.clf()
         plt.plot(range(min_num_topics, max_num_topics+1), symmetric_kl_divergence)
         plt.title('Arun et al. metric')
         plt.xlabel('number of topics')
         plt.ylabel('symmetric KL divergence')
-        plt.savefig(file_path)
+        plt.savefig('output/arun.png')
+        save_topic_number_metrics_data('output/arun.tsv', range_=(min_num_topics, max_num_topics),
+                                       data=symmetric_kl_divergence, metric_type='arun')
 
     def topic_cloud(self, file_path='output/topic_cloud.json'):
         json_graph = {}

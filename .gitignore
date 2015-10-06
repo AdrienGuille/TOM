@@ -11,3 +11,5 @@
 *.pyc
 
 *.mlex
+
+.idea/.name

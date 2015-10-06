@@ -25,12 +25,11 @@ print 'corpus size:', corpus.size
 print 'vocabulary size:', len(corpus.vocabulary)
 print 'Vector representation of document 2:\n', corpus.vector_for_document(2)
 ```
-- Instanciate a topic model
+- Instantiate a topic model
 ```
-# Instanciate a topic model
 topic_model = LatentDirichletAllocation(corpus=corpus)
 ```
-- Estimate the optimal number of topics using the method proposed by Arun et al.
+- Estimate the optimal number of topics
 ```
 viz = Visualization(topic_model)
 viz.plot_arun_metric(10, 30, 5, '/Users/adrien/Desktop/arun.png')

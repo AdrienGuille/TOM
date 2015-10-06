@@ -40,10 +40,7 @@ class Corpus:
         if preprocessor is not None:
             for i in self.data_frame.index.tolist():
                 full_content = self.data_frame.iloc[i]['full_content']
-                lemmatized_content = []
-                for word in wordpunct_tokenize(full_content.lower()):
-                    lemmatized_content.append(preprocessor.get_lemma(word))
-                self.data_frame.loc[i, 'full_content'] = ' '.join(lemmatized_content)
+                self.data_frame.loc[i, 'full_content'] = preprocessor.process_sentence(full_content)
         stop_words = []
         if language is not None:
             stop_words = stopwords.words(language)

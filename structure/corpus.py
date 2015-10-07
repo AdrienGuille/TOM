@@ -1,14 +1,12 @@
 # coding: utf-8
 from gensim import matutils
 from nltk.corpus import stopwords
-from nltk import wordpunct_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import networkx as nx
 import itertools
 import pandas
 from networkx.readwrite import json_graph
 from scipy import spatial
-import random
 
 __author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -124,7 +122,7 @@ class Corpus:
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:num_docs]
 
-    def collaboration_network(self, doc_ids=None):
+    def collaboration_network(self, doc_ids=None, nx_format=False):
         nx_graph = nx.Graph(name='')
         for doc_id in doc_ids:
             authors = self.authors(doc_id)
@@ -135,4 +133,7 @@ class Corpus:
                     nx_graph.add_edge(authors[i], authors[j])
         bb = nx.betweenness_centrality(nx_graph)
         nx.set_node_attributes(nx_graph, 'betweenness', bb)
-        return json_graph.node_link_data(nx_graph)
+        if nx_format:
+            return nx_graph
+        else:
+            return json_graph.node_link_data(nx_graph)

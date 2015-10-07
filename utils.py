@@ -3,7 +3,7 @@ import codecs
 import json
 import pickle
 
-__author__ = "Adrien Guille"
+__author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
 

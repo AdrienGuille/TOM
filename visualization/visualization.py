@@ -9,7 +9,7 @@ import numpy as np
 import seaborn
 import json
 
-__author__ = "Adrien Guille"
+__author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
 

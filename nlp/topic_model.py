@@ -27,13 +27,6 @@ class TopicModel(object):
     def infer_topics(self, num_topics=10):
         pass
 
-    def print_topics(self, num_words=10):
-        for topic_id in range(self.nb_topics):
-            word_list = []
-            for weighted_word in self.top_words(topic_id, num_words):
-                word_list.append(weighted_word[0])
-            print 'topic', topic_id, ': ', ' '.join(word_list)
-
     def greene_metric(self, min_num_topics=10, step=5, max_num_topics=50, top_n_words=10, tao=10):
         """
         Implements Greene metric to compute the optimal number of topics. Taken from How Many Topics?
@@ -122,6 +115,14 @@ class TopicModel(object):
             consensus_matrix = np.array(connectivity_matrices).mean(axis=2)
         return ''
 
+    def print_topics(self, num_words=10):
+        frequency = self.topics_frequency()
+        for topic_id in range(self.nb_topics):
+            word_list = []
+            for weighted_word in self.top_words(topic_id, num_words):
+                word_list.append(weighted_word[0])
+            print 'topic %i: %s (%f)' % (topic_id, ' '.join(word_list), frequency[topic_id])
+
     def top_words(self, topic_id, num_words):
         vector = self.topic_word_matrix[topic_id]
         cx = vector.tocoo()
@@ -130,24 +131,6 @@ class TopicModel(object):
             weighted_words[word_id] = (self.corpus.word_for_id(word_id), weight)
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
-
-    def affiliation_repartition(self, topic_id):
-        counts = {}
-        doc_ids = self.documents_for_topic(topic_id)
-        for i in doc_ids:
-            affiliations = set(self.corpus.affiliations(i))
-            for affiliation in affiliations:
-                if str(affiliation) not in ['nan', '@gmail.com', '@yahoo.fr']:
-                    if counts.get(affiliation):
-                        count = counts[affiliation] + 1
-                        counts[affiliation] = count
-                    else:
-                        counts[affiliation] = 1
-        tuples = []
-        for affiliation, count in counts.iteritems():
-            tuples.append((affiliation, count))
-        tuples.sort(key=lambda x: x[1], reverse=True)
-        return tuples
 
     def topic_distribution_for_document(self, doc_id):
         vector = self.document_topic_matrix[doc_id]
@@ -191,16 +174,6 @@ class TopicModel(object):
                 doc_ids.append(doc_id)
         return doc_ids
 
-    def similar_documents(self, doc_id, num_docs):
-        doc_weights = self.topic_distribution_for_document(doc_id)
-        similarities = []
-        for a_doc_id in range(self.corpus.size):
-            if a_doc_id != doc_id:
-                similarity = 1.0 - spatial.distance.cosine(doc_weights, self.topic_distribution_for_document(a_doc_id))
-                similarities.append((a_doc_id, similarity))
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        return similarities[:num_docs]
-
     def documents_per_topic(self):
         topic_associations = {}
         for i in range(self.corpus.size):
@@ -213,6 +186,34 @@ class TopicModel(object):
                 documents = [i]
                 topic_associations[topic_id] = documents
         return topic_associations
+
+    def similar_documents(self, doc_id, num_docs):
+        doc_weights = self.topic_distribution_for_document(doc_id)
+        similarities = []
+        for a_doc_id in range(self.corpus.size):
+            if a_doc_id != doc_id:
+                similarity = 1.0 - spatial.distance.cosine(doc_weights, self.topic_distribution_for_document(a_doc_id))
+                similarities.append((a_doc_id, similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return similarities[:num_docs]
+
+    def affiliation_repartition(self, topic_id):
+        counts = {}
+        doc_ids = self.documents_for_topic(topic_id)
+        for i in doc_ids:
+            affiliations = set(self.corpus.affiliations(i))
+            for affiliation in affiliations:
+                if str(affiliation) not in ['nan', '@gmail.com', '@yahoo.fr']:
+                    if counts.get(affiliation):
+                        count = counts[affiliation] + 1
+                        counts[affiliation] = count
+                    else:
+                        counts[affiliation] = 1
+        tuples = []
+        for affiliation, count in counts.iteritems():
+            tuples.append((affiliation, count))
+        tuples.sort(key=lambda x: x[1], reverse=True)
+        return tuples
 
 
 class LatentDirichletAllocation(TopicModel):
@@ -269,7 +270,7 @@ class LatentSemanticAnalysis(TopicModel):
 class NonNegativeMatrixFactorization(TopicModel):
     def infer_topics(self, num_topics=10):
         self.nb_topics = num_topics
-        nmf = NMF(n_components=num_topics, random_state=1)
+        nmf = NMF(n_components=num_topics)
         topic_document = nmf.fit_transform(self.corpus.sklearn_vector_space)
         self.topic_word_matrix = []
         self.document_topic_matrix = []

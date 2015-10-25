@@ -1,58 +1,72 @@
 # TOM
 
-TOM (TOpic Modeling) is a python library for topic modeling and exploration. It features functions to preprocess (stemming, lemmatizing, vectorizing) text as well as functions to estimate the optimal number of topics. It provides a common interface for several topic models (LSA, LDA, NMF). It also features a Web-based topic/document explorer (see screenshots below).
+TOM (TOpic Modeling) is a Python library for topic modeling and browsing. Its objective is to allow for an efficient analysis of a text corpus from start to finish, via the discovery of latent topics. To this end, TOM features functions for preparing and vectorizing a text corpus. It also offers a common interface for two topic models (namely LDA using either variational inference or Gibbs sampling, and NMF using alternating least-square with a projected gradient method), and implements three state-of-the-art methods for estimating the optimal number of topics to model a corpus. What is more, TOM constructs an interactive Web-based browser that makes it easy to explore a topic model and the related corpus.
 
-## Documentation
+## Usage
 
-- Import required classes and static functions:
+###Load and prepare a text corpus
+
+The following code snippet shows how to load a corpus of French documents, lemmatize them and vectorize them using tf-idf with unigrams.
+
 ```
-from nlp.topic_model import LatentDirichletAllocation, LatentSemanticAnalysis, NonNegativeMatrixFactorization
-from nlp.preprocessor import FrenchLemmatizer, EnglishStemmer, EnglishLemmatizer
-from structure.corpus import Corpus
-from visualization.visualization import Visualization
-```
-- Load a Corpus instance with a collection of documents stored in a csv file:
-```
-# Load and prepare a corpus
-print 'Load documents from CSV'
-corpus = Corpus(source_file_path='input/egc.csv',
-                language='french',  # determines the stop words
-                vectorization='tf',  # 'tf' (term-frequency) or 'tfidf' (term-frequency inverse-document-frequency)
-                max_relative_frequency=0.8,  # ignore words which relative frequency is > than max_relative_frequency
-                min_absolute_frequency=4,  # ignore words which absolute frequency is < than min_absolute_frequency
-                preprocessor=None)  # determines how documents are preprocessed (e.g. stemming, lemmatization)
+corpus = Corpus(source_file_path='input/raw_corpus.csv',
+                language='french', 
+                vectorization='tfidf', 
+                n_gram=1,
+                max_relative_frequency=0.8, 
+                min_absolute_frequency=4,
+                preprocessor=FrenchLemmatizer())
 print 'corpus size:', corpus.size
 print 'vocabulary size:', len(corpus.vocabulary)
-print 'Vector representation of document 2:\n', corpus.vector_for_document(2)
-```
-- Instantiate a topic model
-```
-topic_model = LatentDirichletAllocation(corpus=corpus)
-```
-- Estimate the optimal number of topics
-```
-viz = Visualization(topic_model)
-viz.plot_greene_metric(min_num_topics=10, max_num_topics=30, tao=10, step=1,
-                       top_n_words=10, file_path='output/greene.png')
-viz.plot_arun_metric(min_num_topics=5, max_num_topics=30, iterations=5)
-```
-- Infer topics
-```
-topic_model.infer_topics(num_topics=20)
-```
-- Print some results
-```
-print '\nTopics:'
-topic_model.print_topics(num_words=10)
-print '\nDocument 2:', topic_model.corpus.full_content(2)
-print '\nTopic distribution for document 2:', topic_model.topic_distribution_for_document(2)
-print '\nMost likely topic for document 2:', topic_model.most_likely_topic_for_document(2)
-print '\nTopics frequency:', topic_model.topics_frequency()
-print '\nTopic 2 frequency:', topic_model.topic_frequency(2)
-print '\nTop 10 most likely words for topic 2:', topic_model.top_words(2, 10)
+print 'Vector for document 0:\n', corpus.vector_for_document(0)
 ```
 
-## Topic/document explorer
+### Instantiate a topic model and estimate the optimal number of topics
+
+Here, we instantiate a NMF based topic model and generate plots with the three metrics for estimating the optimal number of topics to model the loaded corpus.
+
+```
+topic_model = NonNegativeMatrixFactorization(corpus)
+viz = Visualization(topic_model)
+viz.plot_greene_metric(min_num_topics=5, 
+                       max_num_topics=50, 
+                       tao=10, step=1, 
+                       top_n_words=10)
+viz.plot_arun_metric(min_num_topics=5, 
+                     max_num_topics=50, 
+                     iterations=10)
+viz.plot_consens_metric(min_num_topics=5, 
+                        max_num_topics=50,
+                        iterations=10)
+```
+
+### Fit a topic model and save/load it
+
+To allow reusing previously learned topics models, TOM can save them on disk, as shown below.
+
+```
+topic_model.infer_topics(num_topics=15)
+utils.save_topic_model(topic_model, 'output/NMF_15topics.tom')
+topic_model = utils.load_topic_model('output/NMF_15topics.tom')
+```
+
+### Print information about a topic model
+
+This code excerpt illustrates how one can manipulate a topic model, e.g. get the topic distribution for a document or the word distribution for a topic.
+
+```
+print '\nTopics:', topic_model.print_topics(num_words=10)
+print '\nTopic distribution for document 0:', \
+    topic_model.topic_distribution_for_document(0)
+print '\nMost likely topic for document 0:', \
+    topic_model.most_likely_topic_for_document(0)
+print '\nFrequency of topics:', \
+    topic_model.topics_frequency()
+print '\nTop 10 most relevant words for topic 2:', \
+    topic_model.top_words(2, 10)
+```
+
+## Topic model browser: screenshots
 
 ### Topic cloud
 ![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/topic_cloud.jpg)

@@ -71,6 +71,6 @@ print '\nTop 10 most relevant words for topic 2:', \
 ### Topic cloud
 ![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/topic_cloud.jpg)
 ### Topic details
-![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/topic_details.jpg)
+![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/topic_0.jpg)
 ### Document details
-![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/document_details.jpg)
+![](http://mediamining.univ-lyon2.fr/people/guille/tom-resources/document_31.jpg)

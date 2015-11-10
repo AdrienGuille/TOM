@@ -43,11 +43,14 @@ class FrenchLemmatizer(PreProcessor):
         self.script_path = 'nlp/melt.sh'
 
     def process_sentence(self, sentence):
-        result = subprocess.check_output([self.script_path, sentence])
+        ps = subprocess.Popen(('echo', sentence), stdout=subprocess.PIPE)
+        output = subprocess.check_output(('MElt', '-L'), stdin=ps.stdout)
+        ps.wait()
         stemmed_sentence = []
-        for annotated_token in result.split(' '):
+        for annotated_token in output.split(' '):
             tag = annotated_token.split('/')
             stemmed_sentence.append(tag[2])
+        print sentence, stemmed_sentence
         return ' '.join(stemmed_sentence)
 
 

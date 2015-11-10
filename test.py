@@ -32,7 +32,7 @@ viz.plot_greene_metric(min_num_topics=10,
 viz.plot_arun_metric(min_num_topics=5,
                      max_num_topics=30,
                      iterations=10)
-viz.plot_consens_metric(min_num_topics=5,
+viz.plot_consensus_metric(min_num_topics=5,
                         max_num_topics=30,
                         iterations=10)
 

@@ -6,6 +6,7 @@ from nltk import wordpunct_tokenize
 from nltk.stem.snowball import EnglishStemmer as SnowballEnglishStemmer
 from nltk.corpus.reader import wordnet
 import nltk
+import subprocess
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -39,10 +40,15 @@ class PreProcessor(object):
 class FrenchLemmatizer(PreProcessor):
 
     def __init__(self):
-        self.nothin = ''
+        self.script_path = 'nlp/melt.sh'
 
     def process_sentence(self, sentence):
-        return ''
+        result = subprocess.check_output([self.script_path, sentence])
+        stemmed_sentence = []
+        for annotated_token in result.split(' '):
+            tag = annotated_token.split('/')
+            stemmed_sentence.append(tag[2])
+        return ' '.join(stemmed_sentence)
 
 
 class EnglishStemmer(PreProcessor):

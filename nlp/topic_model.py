@@ -132,6 +132,14 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
+    def word_distribution_for_topic(self, topic_id):
+        vector = self.topic_word_matrix[topic_id]
+        cx = vector.tocoo()
+        weights = [0.0] * self.nb_topics
+        for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+            weights[topic_id] = weight
+        return weights
+
     def topic_distribution_for_document(self, doc_id):
         vector = self.document_topic_matrix[doc_id]
         cx = vector.tocoo()
@@ -147,6 +155,13 @@ class TopicModel(object):
         for topic_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
             distribution[topic_id] = weight
         return distribution
+
+    def topic_distribution_for_author(self, author_name):
+        all_weights = []
+        for document_id in self.corpus.documents_by_author(author_name):
+            all_weights.append(self.topic_distribution_for_document(document_id))
+        ouput = np.array(all_weights)
+        return ouput.mean(axis=0)
 
     def most_likely_topic_for_document(self, doc_id):
         weights = self.topic_distribution_for_document(doc_id)

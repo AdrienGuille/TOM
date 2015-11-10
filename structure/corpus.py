@@ -87,6 +87,12 @@ class Corpus:
                 ids.append(i)
         return ids
 
+    def all_authors(self):
+        author_list = []
+        for doc_id in range(self.size):
+            author_list.extend(self.authors(doc_id))
+        return list(set(author_list))
+
     def is_author(self, author, doc_id):
         return author in self.authors(doc_id)
 

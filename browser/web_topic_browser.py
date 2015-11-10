@@ -21,7 +21,7 @@ num_topics = 20
 vectorization = 'tfidf'
 
 # Load corpus
-corpus = Corpus(source_file_path='../input/egc.csv',
+corpus = Corpus(source_file_path='../input/elysee.csv',
                 language='french',
                 vectorization=vectorization,
                 max_relative_frequency=max_tf,
@@ -50,7 +50,7 @@ for topic_id in range(topic_model.nb_topics):
     utils.save_affiliation_repartition(topic_model.affiliation_repartition(topic_id),
                                        'static/data/affiliation_repartition'+str(topic_id)+'.tsv')
     evolution = []
-    for i in range(2004, 2016):
+    for i in range(2012, 2016):
         evolution.append((i, topic_model.topic_frequency(topic_id, date=i)))
     utils.save_topic_evolution(evolution, 'static/data/frequency'+str(topic_id)+'.tsv')
 

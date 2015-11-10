@@ -13,3 +13,5 @@
 *.mlex
 
 .idea/.name
+
+main.py

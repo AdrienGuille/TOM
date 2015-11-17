@@ -132,6 +132,14 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
+    def top_documents(self, topic_id, num_docs):
+        vector = self.topic_word_matrix[:, word_id]
+        cx = vector.tocoo()
+        distribution = [0.0] * self.nb_topics
+        for topic_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
+            distribution[topic_id] = weight
+        return distribution
+
     def word_distribution_for_topic(self, topic_id):
         vector = self.topic_word_matrix[topic_id]
         cx = vector.tocoo()

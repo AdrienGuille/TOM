@@ -7,12 +7,14 @@ import itertools
 import pandas
 from networkx.readwrite import json_graph
 from scipy import spatial
+import re
 
 __author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
 
 class Corpus:
+    MAX_FEATURES = 2000
 
     def __init__(self,
                  source_file_path,
@@ -38,19 +40,24 @@ class Corpus:
         if preprocessor is not None:
             for i in self.data_frame.index.tolist():
                 full_content = self.data_frame.iloc[i]['full_content']
-                self.data_frame.loc[i, 'full_content'] = preprocessor.process_sentence(full_content)
+                sentence_end = re.compile('[.!?]')
+                sentences = sentence_end.split(full_content)
+                processed_sentences = []
+                for sentence in sentences:
+                    processed_sentences.append(preprocessor.process_sentence(sentence))
+                self.data_frame.loc[i, 'full_content'] = ' '.join(processed_sentences)
         stop_words = []
         if language is not None:
             stop_words = stopwords.words(language)
         if vectorization == 'tfidf':
             self.vectorizer = TfidfVectorizer(max_df=max_relative_frequency,
                                               min_df=min_absolute_frequency,
-                                              max_features=2000,
+                                              max_features=self.MAX_FEATURES,
                                               stop_words=stop_words)
         elif vectorization == 'tf':
             self.vectorizer = CountVectorizer(max_df=max_relative_frequency,
                                               min_df=min_absolute_frequency,
-                                              max_features=2000,
+                                              max_features=self.MAX_FEATURES,
                                               stop_words=stop_words)
         else:
             raise ValueError('Unknown vectorization type: %s' % vectorization)
@@ -117,6 +124,12 @@ class Corpus:
 
     def word_for_id(self, word_id):
         return self.vocabulary.get(word_id)
+
+    def id_for_word(self, word):
+        for i, s in self.vocabulary.items():
+            if s == word:
+                return i
+        return -1
 
     def similar_documents(self, doc_id, num_docs):
         doc_weights = self.vector_for_document(doc_id)

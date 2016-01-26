@@ -6,7 +6,6 @@ mpl.use("Agg") # To be able to create figures on a headless server (no DISPLAY v
 import matplotlib.pyplot as plt
 import codecs
 import numpy as np
-import seaborn
 import json
 
 __author__ = "Adrien Guille, Pavel Soriano"

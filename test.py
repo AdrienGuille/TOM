@@ -1,5 +1,5 @@
 # coding: utf-8
-from nlp.topic_model import LatentDirichletAllocation, LatentSemanticAnalysis, NonNegativeMatrixFactorization
+from nlp.topic_model import LatentDirichletAllocation, NonNegativeMatrixFactorization
 from nlp.preprocessor import FrenchLemmatizer, EnglishStemmer, EnglishLemmatizer
 from structure.corpus import Corpus
 from visualization.visualization import Visualization
@@ -24,6 +24,7 @@ print 'Vector representation of document 0:\n', corpus.vector_for_document(0)
 topic_model = NonNegativeMatrixFactorization(corpus)
 
 # Estimate the optimal number of topics
+
 viz = Visualization(topic_model)
 viz.plot_greene_metric(min_num_topics=10,
                        max_num_topics=30,
@@ -32,9 +33,6 @@ viz.plot_greene_metric(min_num_topics=10,
 viz.plot_arun_metric(min_num_topics=5,
                      max_num_topics=30,
                      iterations=10)
-viz.plot_consensus_metric(min_num_topics=5,
-                        max_num_topics=30,
-                        iterations=10)
 
 # Infer topics
 print 'Inferring topics...'

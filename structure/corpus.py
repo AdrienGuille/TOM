@@ -20,8 +20,8 @@ class Corpus:
                  source_file_path,
                  language=None,
                  vectorization='tfidf',
-                 max_relative_frequency=0.95,
-                 min_absolute_frequency=2,
+                 max_relative_frequency=1.,
+                 min_absolute_frequency=0,
                  preprocessor=None,
                  sample=None):
 
@@ -62,7 +62,7 @@ class Corpus:
         else:
             raise ValueError('Unknown vectorization type: %s' % vectorization)
         self.sklearn_vector_space = self.vectorizer.fit_transform(self.data_frame['full_content'].tolist())
-        self.gensim_vector_space = matutils.Sparse2Corpus(self.sklearn_vector_space, documents_columns=False)
+        self.gensim_vector_space = None
         vocab = self.vectorizer.get_feature_names()
         self.vocabulary = dict([(i, s) for i, s in enumerate(vocab)])
 

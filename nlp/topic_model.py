@@ -241,6 +241,9 @@ class TopicModel(object):
 
 class LatentDirichletAllocation(TopicModel):
     def infer_topics(self, num_topics=10):
+        if self.corpus.gensim_vector_space is None:
+            self.corpus.gensim_vector_space = matutils.Sparse2Corpus(self.corpus.sklearn_vector_space,
+                                                                     documents_columns=False)
         self.nb_topics = num_topics
         lda = models.LdaModel(corpus=self.corpus.gensim_vector_space,
                               iterations=10000,
@@ -263,10 +266,14 @@ class LatentDirichletAllocation(TopicModel):
             np.transpose(matutils.corpus2dense(lda[self.corpus.gensim_vector_space],
                                                num_topics,
                                                self.corpus.size)))
+        self.corpus.gensim_vector_space = None
 
 
 class LatentSemanticAnalysis(TopicModel):
     def infer_topics(self, num_topics=10):
+        if self.corpus.gensim_vector_space is None:
+            self.corpus.gensim_vector_space = matutils.Sparse2Corpus(self.corpus.sklearn_vector_space,
+                                                                     documents_columns=False)
         self.nb_topics = num_topics
         lsa = models.LsiModel(corpus=self.corpus.gensim_vector_space,
                               id2word=self.corpus.vocabulary,
@@ -288,6 +295,7 @@ class LatentSemanticAnalysis(TopicModel):
         self.document_topic_matrix = np.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_vector_space],
                                                                         num_topics,
                                                                         self.corpus.size))
+        self.corpus.gensim_vector_space = None
 
 
 class NonNegativeMatrixFactorization(TopicModel):

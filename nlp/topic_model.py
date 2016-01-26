@@ -6,8 +6,7 @@ from gensim import models, matutils
 from sklearn.decomposition import NMF
 import numpy as np
 from scipy.sparse import coo_matrix
-from scipy import spatial, sparse
-
+from scipy import spatial, sparse, cluster
 import stats
 
 __author__ = "Adrien Guille, Pavel Soriano"
@@ -48,6 +47,7 @@ class TopicModel(object):
             for t in range(tao):
                 tao_corpus = Corpus(source_file_path=self.corpus._source_file_path,
                                     language=self.corpus._language,
+                                    n_gram=self.corpus._n_gram,
                                     vectorization=self.corpus._vectorization,
                                     max_relative_frequency=self.corpus._max_relative_frequency,
                                     min_absolute_frequency=self.corpus._min_absolute_frequency,
@@ -87,7 +87,7 @@ class TopicModel(object):
         ouput = np.array(kl_matrix)
         return ouput.mean(axis=0)
 
-    def consensus_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
+    def brunet_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
         """
         Implements a consensus-based metric to estimate the optimal number of topics:
         Brunet, J.P., Tamayo, P., Golub, T.R., Mesirov, J.P.
@@ -98,22 +98,28 @@ class TopicModel(object):
         :param iterations:
         :return:
         """
-        connectivity_matrices = []
+        cophenetic_correlation = []
         for i in range(min_num_topics, max_num_topics+1):
+            average_C = np.zeros((self.corpus.size, self.corpus.size))
             for j in range(iterations):
-                connectivity_matrix = []
                 self.infer_topics(i)
                 for p in range(self.corpus.size):
-                    connectivity_vector = []
                     for q in range(self.corpus.size):
-                        value = 0
                         if self.most_likely_topic_for_document(p) == self.most_likely_topic_for_document(q):
-                            value = 1
-                        connectivity_vector.append(value)
-                    connectivity_matrix.append(connectivity_vector)
-                connectivity_matrices.append(connectivity_matrix)
-            consensus_matrix = np.array(connectivity_matrices).mean(axis=2)
-        return ''
+                            average_C[p, q] += float(1./iterations)
+
+            clustering = cluster.hierarchy.linkage(average_C, method='average')
+            Z = cluster.hierarchy.dendrogram(clustering, orientation='right')
+            index = Z['leaves']
+            average_C = average_C[index, :]
+            average_C = average_C[:, index]
+            (c, d) = cluster.hierarchy.cophenet(Z=clustering, Y=spatial.distance.pdist(average_C))
+            # plt.clf()
+            # f, ax = plt.subplots(figsize=(11, 9))
+            # ax = sns.heatmap(average_C)
+            # plt.savefig('reorderedC.png')
+            cophenetic_correlation.append(c)
+        return cophenetic_correlation
 
     def print_topics(self, num_words=10):
         frequency = self.topics_frequency()
@@ -132,7 +138,7 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
-    def top_documents(self, topic_id, num_docs):
+    def top_documents(self, word_id, num_docs):
         vector = self.topic_word_matrix[:, word_id]
         cx = vector.tocoo()
         distribution = [0.0] * self.nb_topics

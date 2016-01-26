@@ -51,7 +51,7 @@ class Visualization:
         plt.plot(np.arange(min_num_topics, max_num_topics+1, step), greene_stability)
         plt.title('Greene et al. metric')
         plt.xlabel('number of topics')
-        plt.ylabel('Greene metric')
+        plt.ylabel('stability')
         plt.savefig('output/greene.png')
         save_topic_number_metrics_data('output/greene.tsv', range_=(min_num_topics, max_num_topics),
                                        data=greene_stability, metric_type='greene')
@@ -66,6 +66,17 @@ class Visualization:
         plt.savefig('output/arun.png')
         save_topic_number_metrics_data('output/arun.tsv', range_=(min_num_topics, max_num_topics),
                                        data=symmetric_kl_divergence, metric_type='arun')
+
+    def plot_brunet_metric(self, min_num_topics=10, max_num_topics=50, iterations=10):
+        cophenetic_correlation = self.topic_model.brunet_metric(min_num_topics, max_num_topics, iterations)
+        plt.clf()
+        plt.plot(range(min_num_topics, max_num_topics+1), cophenetic_correlation)
+        plt.title('Brunet et al. metric')
+        plt.xlabel('number of topics')
+        plt.ylabel('cophenetic correlation coefficient')
+        plt.savefig('output/brunet.png')
+        save_topic_number_metrics_data('output/brunet.tsv', range_=(min_num_topics, max_num_topics),
+                                       data=cophenetic_correlation, metric_type='brunet')
 
     def topic_cloud(self, file_path='output/topic_cloud.json'):
         json_graph = {}

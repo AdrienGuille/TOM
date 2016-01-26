@@ -19,6 +19,7 @@ class Corpus:
     def __init__(self,
                  source_file_path,
                  language=None,
+                 n_gram=1,
                  vectorization='tfidf',
                  max_relative_frequency=1.,
                  min_absolute_frequency=0,
@@ -27,6 +28,7 @@ class Corpus:
 
         self._source_file_path = source_file_path
         self._language = language
+        self._n_gram = n_gram
         self._vectorization = vectorization
         self._max_relative_frequency = max_relative_frequency
         self._min_absolute_frequency = min_absolute_frequency
@@ -50,20 +52,22 @@ class Corpus:
         if language is not None:
             stop_words = stopwords.words(language)
         if vectorization == 'tfidf':
-            self.vectorizer = TfidfVectorizer(max_df=max_relative_frequency,
-                                              min_df=min_absolute_frequency,
-                                              max_features=self.MAX_FEATURES,
-                                              stop_words=stop_words)
+            vectorizer = TfidfVectorizer(ngram_range=(1, n_gram),
+                                         max_df=max_relative_frequency,
+                                         min_df=min_absolute_frequency,
+                                         max_features=self.MAX_FEATURES,
+                                         stop_words=stop_words)
         elif vectorization == 'tf':
-            self.vectorizer = CountVectorizer(max_df=max_relative_frequency,
-                                              min_df=min_absolute_frequency,
-                                              max_features=self.MAX_FEATURES,
-                                              stop_words=stop_words)
+            vectorizer = CountVectorizer(ngram_range=(1, n_gram),
+                                         max_df=max_relative_frequency,
+                                         min_df=min_absolute_frequency,
+                                         max_features=self.MAX_FEATURES,
+                                         stop_words=stop_words)
         else:
             raise ValueError('Unknown vectorization type: %s' % vectorization)
-        self.sklearn_vector_space = self.vectorizer.fit_transform(self.data_frame['full_content'].tolist())
+        self.sklearn_vector_space = vectorizer.fit_transform(self.data_frame['full_content'].tolist())
         self.gensim_vector_space = None
-        vocab = self.vectorizer.get_feature_names()
+        vocab = vectorizer.get_feature_names()
         self.vocabulary = dict([(i, s) for i, s in enumerate(vocab)])
 
     def export(self, file_path):

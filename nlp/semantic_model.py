@@ -1,5 +1,6 @@
 # coding: utf-8
 from nltk.tokenize import WordPunctTokenizer
+from nlp.preprocessor import FrenchLemmatizer
 from structure.corpus import Corpus
 import numpy as np
 from sklearn import decomposition
@@ -74,14 +75,15 @@ class SemanticModel:
 
 if __name__ == '__main__':
     print 'Loading corpus...'
-    corpus = Corpus(source_file_path='../input/egc_lemmatized.csv',
+    corpus = Corpus(source_file_path='../input/mockup.csv',
                     language='french',
                     vectorization='tfidf',
                     max_relative_frequency=0.8,
                     min_absolute_frequency=4,
-                    preprocessor=None)
+                    preprocessor=FrenchLemmatizer())
     print ' - corpus size:', corpus.size
     print ' - vocabulary size:', len(corpus.vocabulary)
+    corpus.export('../input/elysee_lemmatized_50.csv')
 
     print 'Computing semantic model...'
     print ' - calculating raw frequencies...'
@@ -94,7 +96,8 @@ if __name__ == '__main__':
     model.svd_smoothing(dimension=100)
 
     while True:
-        word_id = input('Word id: ')
+        word = str(input('Word: '))
+        word_id = corpus.id_for_word(word)
         print 'This id corresponds to:', corpus.word_for_id(word_id)
         print 'Most similar words:'
         for similar_id in model.most_similar_words(word_id):

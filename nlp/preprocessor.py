@@ -49,8 +49,9 @@ class FrenchLemmatizer(PreProcessor):
         stemmed_sentence = []
         for annotated_token in output.split(' '):
             tag = annotated_token.split('/')
-            stemmed_sentence.append(tag[2])
-        print sentence, stemmed_sentence
+            if len(tag) == 3:
+                if '|' not in tag[2]:
+                    stemmed_sentence.append(tag[2].replace('\n', ''))
         return ' '.join(stemmed_sentence)
 
 

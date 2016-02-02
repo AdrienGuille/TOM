@@ -70,7 +70,7 @@ class EnglishStemmer(PreProcessor):
 
 class EnglishLemmatizer(PreProcessor):
 
-    def __init__(self, skip_token_without_pos):
+    def __init__(self, skip_token_without_pos=False):
         self.lemmatizer = WordNetLemmatizer()
         self.skip = skip_token_without_pos
 

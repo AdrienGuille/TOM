@@ -1,10 +1,11 @@
 # coding: utf-8
 from nltk.tokenize import WordPunctTokenizer
-from nlp.preprocessor import FrenchLemmatizer
 from structure.corpus import Corpus
 import numpy as np
 from sklearn import decomposition
 from scipy import spatial
+from nlp.preprocessor import EnglishLemmatizer
+import platform
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -50,8 +51,11 @@ class SemanticModel:
                 p_ij = (self.word_context_matrix[i, j]+laplace_smoothing)/total_f_ij
                 p_i = (np.sum(self.word_context_matrix[i, :])+n_c*laplace_smoothing)/total_f_ij
                 p_j = (np.sum(self.word_context_matrix[:, j])+n_r*laplace_smoothing)/total_f_ij
-                pmi_ij = np.log(p_ij/(p_i*p_j))
-                if pmi_ij < 0:
+                if p_ij/(p_i*p_j) > 0:
+                    pmi_ij = np.log10(p_ij/(p_i*p_j))
+                    if pmi_ij < 0:
+                        pmi_ij = 0
+                else:
                     pmi_ij = 0
                 ppmi_matrix[i, j] = pmi_ij
         self.word_context_matrix = ppmi_matrix
@@ -62,43 +66,61 @@ class SemanticModel:
         svd = decomposition.TruncatedSVD(n_components=dimension)
         self.word_context_matrix = svd.fit_transform(self.word_context_matrix)
 
-    def most_similar_words(self, word_id, nb_words=3):
+    def most_similar_words(self, word_vector, nb_words=3):
         similarity = []
-        input_vector = self.word_context_matrix[word_id, :]
         for i in range(len(self.word_context_matrix[:, 0])):
-            if i != word_id:
-                similarity.append(spatial.distance.cosine(input_vector, self.word_context_matrix[i, :]))
-            else:
-                similarity.append(0)
-        similar_word_id = np.argsort(np.array(similarity)).tolist()
-        return similar_word_id[:nb_words]
+            similarity.append(spatial.distance.cosine(word_vector, self.word_context_matrix[i, :]))
+        similar_word_ids = np.argsort(np.array(similarity)).tolist()
+        return similar_word_ids[:nb_words]
 
 if __name__ == '__main__':
+    input_file_path = ''
+    output_file_path = ''
+    if platform.system() == 'Darwin':
+        input_file_path = '/Users/adrien/data/HP/HP1.csv'
+        output_file_path = '/Users/adrien/data/HP/HP1_lemmatized.csv'
+    elif platform.system() == 'Linux':
+        input_file_path = '/home/adrien/datasets/HP/HP1.csv'
+        output_file_path = '/home/adrien/datasets/HP/HP1_lemmatized.csv'
     print 'Loading corpus...'
-    corpus = Corpus(source_file_path='../input/mockup.csv',
-                    language='french',
-                    vectorization='tfidf',
-                    max_relative_frequency=0.8,
+    corpus = Corpus(source_file_path=input_file_path,
+                    vectorization='tf',
+                    max_relative_frequency=0.75,
                     min_absolute_frequency=4,
-                    preprocessor=FrenchLemmatizer())
+                    preprocessor=EnglishLemmatizer())
     print ' - corpus size:', corpus.size
     print ' - vocabulary size:', len(corpus.vocabulary)
-    corpus.export('../input/elysee_lemmatized_50.csv')
+    corpus.export(output_file_path)
 
     print 'Computing semantic model...'
     print ' - calculating raw frequencies...'
-    model = SemanticModel(corpus, window=10)
+    model = SemanticModel(corpus, window=7)
 
     print ' - transforming raw frequencies (Positive Pointwise Mutual Information)...'
-    model.ppmi_transform(laplace_smoothing=1)
+    model.ppmi_transform(laplace_smoothing=2)
 
     print ' - smoothing model (SVD)...'
-    model.svd_smoothing(dimension=100)
+    model.svd_smoothing(dimension=300)
 
     while True:
-        word = str(input('Word: '))
-        word_id = corpus.id_for_word(word)
-        print 'This id corresponds to:', corpus.word_for_id(word_id)
-        print 'Most similar words:'
-        for similar_id in model.most_similar_words(word_id):
-            print corpus.word_for_id(similar_id)
+        choice = input('type l to lookup a word\'s id, s to find synonyms of a word')
+        if choice == 'l':
+            a_word = input('Word: ')
+            print 'This word\'s id is: ', corpus.id_for_word(a_word)
+        if choice == 's':
+            a_word_id = input('Word id: ')
+            print 'This id corresponds to: ', corpus.word_for_id(a_word_id)
+            for similar_word_id in model.most_similar_words(model.word_context_matrix[a_word_id, :], 5):
+                print corpus.word_for_id(similar_word_id)
+        elif choice == '-':
+            word_a = input('word (a) id: ')
+            word_b = input('word (b) id: ')
+            word_c = np.substract(model.word_context_matrix[word_a, :], model.word_context_matrix[word_b, :])
+            for similar_word_id in model.most_similar_words(word_c, 5):
+                print corpus.word_for_id(similar_word_id)
+            else:
+                word_a = input('word (a) id: ')
+                word_b = input('word (b) id: ')
+                word_c = np.add(model.word_context_matrix[word_a, :], model.word_context_matrix[word_b, :])
+                for similar_word_id in model.most_similar_words(word_c, 5):
+                    print corpus.word_for_id(similar_word_id)

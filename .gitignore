@@ -1,8 +1,3 @@
-*.tsv
-
-*.xml
-
-*.json
 
 *.iml
 
@@ -10,16 +5,9 @@
 
 *.pyc
 
-*.mlex
-
-.idea/.name
+.idea/
 
 main.py
 
-input/mockup.csv
-
 julien.py
 
-input/egc_lemmatized_50.csv
-
-input/elysee_50.csv

@@ -7,6 +7,12 @@ __author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
 
 
+def print_matrix(matrix):
+    n_r = len(matrix[:, 0])
+    for i in range(n_r):
+        print matrix[i, :]
+
+
 def save_topic_model(topic_model, file_path):
     pickle.dump(topic_model, open(file_path, 'wb'))
 

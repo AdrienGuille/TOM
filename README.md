@@ -4,7 +4,7 @@ TOM (TOpic Modeling) is a Python 2.7 library for topic modeling and browsing. It
 
 ## Installation
 
-We recommend you to install Anaconda (https://www.continuum.io) which will automatically install most of the required dependencies (i.e. pandas, numpy, scipy, scikit-learn, matplotlib, nltk). You should then install the gensim module (https://anaconda.org/anaconda/gensim) and install nltk data (http://www.nltk.org/data.html). 
+We recommend you to install Anaconda (https://www.continuum.io) which will automatically install most of the required dependencies (i.e. pandas, numpy, scipy, scikit-learn, matplotlib, nltk, flask). You should then install the gensim module (https://anaconda.org/anaconda/gensim) and install nltk data (http://www.nltk.org/data.html). 
 If you intend to use the French lemmatizer, you should also install MElt on your system (https://www.rocq.inria.fr/alpage-wiki/tiki-index.php?page=MElt).
 Eventually, clone or download this repo and run the following command:
 
@@ -13,6 +13,8 @@ python setup.py install
 ```
 
 ## Usage
+
+We provide two sample programs, topic_model.py (which shows you how to load and prepare a corpus, estimate the optimal number of topics, infer the topic model and then manipulate it) and topic_model_browser.py (which shows you how to generate a topic model browser to explore a corpus), to help you get started using TOM.
 
 ###Load and prepare a text corpus
 

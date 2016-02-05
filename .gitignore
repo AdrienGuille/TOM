@@ -7,7 +7,6 @@
 
 .idea/
 
-main.py
+misc/
 
-julien.py
-
+browser/static/data/

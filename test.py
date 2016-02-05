@@ -1,9 +1,9 @@
 # coding: utf-8
-from nlp.topic_model import LatentDirichletAllocation, NonNegativeMatrixFactorization
-from nlp.preprocessor import FrenchLemmatizer, EnglishStemmer, EnglishLemmatizer
-from structure.corpus import Corpus
-from visualization.visualization import Visualization
-import utils
+import tom_lib.utils as ut
+from tom_lib.nlp.preprocessor import FrenchLemmatizer
+from tom_lib.nlp.topic_model import NonNegativeMatrixFactorization
+from tom_lib.structure.corpus import Corpus
+from tom_lib.visualization.visualization import Visualization
 
 __author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -41,7 +41,7 @@ viz.plot_brunet_metric(min_num_topics=5,
 print 'Inferring topics...'
 topic_model.infer_topics(num_topics=15)
 # Save model on disk
-utils.save_topic_model(topic_model, 'output/NMF_15topics.pickle')
+ut.save_topic_model(topic_model, 'output/NMF_15topics.pickle')
 
 # Print results
 print '\nTopics:'

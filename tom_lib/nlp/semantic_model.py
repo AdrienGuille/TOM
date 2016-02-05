@@ -1,11 +1,13 @@
 # coding: utf-8
-from nltk.tokenize import WordPunctTokenizer
-from structure.corpus import Corpus
-import numpy as np
-from sklearn import decomposition
-from scipy import spatial
-from nlp.preprocessor import EnglishLemmatizer
 import platform
+
+import numpy as np
+from tom_lib.nlp.preprocessor import EnglishLemmatizer
+from nltk.tokenize import WordPunctTokenizer
+from scipy import spatial
+from sklearn import decomposition
+
+from tom_lib.structure.corpus import Corpus
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"

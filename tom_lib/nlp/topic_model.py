@@ -1,13 +1,15 @@
 # coding: utf-8
-from abc import ABCMeta, abstractmethod
 import itertools
-from structure.corpus import Corpus
-from gensim import models, matutils
-from sklearn.decomposition import NMF
+from abc import ABCMeta, abstractmethod
+
 import numpy as np
-from scipy.sparse import coo_matrix
+import tom_lib.stats
+from gensim import models, matutils
 from scipy import spatial, sparse, cluster
-import stats
+from scipy.sparse import coo_matrix
+from sklearn.decomposition import NMF
+
+from tom_lib.structure.corpus import Corpus
 
 __author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -56,7 +58,7 @@ class TopicModel(object):
                 tao_model = type(self)(tao_corpus)
                 tao_model.infer_topics(k)
                 tao_rank = [list(zip(*tao_model.top_words(i, top_n_words))[0]) for i in range(k)]
-                agreement_score_list.append(stats.agreement_score(reference_rank, tao_rank))
+                agreement_score_list.append(tom_lib.stats.agreement_score(reference_rank, tao_rank))
             stability.append(np.mean(agreement_score_list))
         return stability
 
@@ -82,7 +84,7 @@ class TopicModel(object):
                 c_m2 = l.dot(self.document_topic_matrix.todense())
                 c_m2 += 0.0001
                 c_m2 /= norm
-                kl_list.append(stats.symmetric_kl(c_m1.tolist(), c_m2.tolist()[0]))
+                kl_list.append(tom_lib.stats.symmetric_kl(c_m1.tolist(), c_m2.tolist()[0]))
             kl_matrix.append(kl_list)
         ouput = np.array(kl_matrix)
         return ouput.mean(axis=0)

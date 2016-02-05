@@ -1,11 +1,12 @@
 # coding: utf-8
-from nlp.preprocessor import FrenchLemmatizer
-from nlp.topic_model import LatentDirichletAllocation, LatentSemanticAnalysis, NonNegativeMatrixFactorization
-from structure.corpus import Corpus
-from flask import Flask, render_template
-import utils
-import shutil
 import os
+import shutil
+
+import utils
+from flask import Flask, render_template
+from nlp.topic_model import NonNegativeMatrixFactorization
+
+from tom_lib.structure import Corpus
 
 __author__ = "Adrien Guille"
 __email__ = "adrien.guille@univ-lyon2.fr"
@@ -46,23 +47,23 @@ utils.save_topic_cloud(topic_model, 'static/data/topic_cloud.json')
 # Export details about topics
 for topic_id in range(topic_model.nb_topics):
     utils.save_word_distribution(topic_model.top_words(topic_id, 20),
-                                 'static/data/word_distribution'+str(topic_id)+'.tsv')
+                                 'static/data/word_distribution' + str(topic_id) +'.tsv')
     utils.save_affiliation_repartition(topic_model.affiliation_repartition(topic_id),
-                                       'static/data/affiliation_repartition'+str(topic_id)+'.tsv')
+                                       'static/data/affiliation_repartition' + str(topic_id) +'.tsv')
     evolution = []
     for i in range(2012, 2016):
         evolution.append((i, topic_model.topic_frequency(topic_id, date=i)))
-    utils.save_topic_evolution(evolution, 'static/data/frequency'+str(topic_id)+'.tsv')
+    utils.save_topic_evolution(evolution, 'static/data/frequency' + str(topic_id) + '.tsv')
 
 # Export details about documents
 for doc_id in range(topic_model.corpus.size):
     utils.save_topic_distribution(topic_model.topic_distribution_for_document(doc_id),
-                                  'static/data/topic_distribution_d'+str(doc_id)+'.tsv')
+                                  'static/data/topic_distribution_d' + str(doc_id) +'.tsv')
 
 # Export details about words
 for word_id in range(len(topic_model.corpus.vocabulary)):
     utils.save_topic_distribution(topic_model.topic_distribution_for_word(word_id),
-                                  'static/data/topic_distribution_w'+str(word_id)+'.tsv')
+                                  'static/data/topic_distribution_w' + str(word_id) +'.tsv')
 
 # Associate documents with topics
 topic_associations = topic_model.documents_per_topic()
@@ -70,7 +71,7 @@ topic_associations = topic_model.documents_per_topic()
 # Export per-topic author network
 for topic_id in range(topic_model.nb_topics):
     utils.save_json_object(corpus.collaboration_network(topic_associations[topic_id]),
-                           'static/data/author_network'+str(topic_id)+'.json')
+                           'static/data/author_network' + str(topic_id) +'.json')
 
 
 @app.route('/')

@@ -1,6 +1,7 @@
 # coding: utf-8"
 import matplotlib as mpl
-from utils import save_topic_number_metrics_data
+
+from tom_lib.utils import save_topic_number_metrics_data
 
 mpl.use("Agg") # To be able to create figures on a headless server (no DISPLAY variable)
 import matplotlib.pyplot as plt

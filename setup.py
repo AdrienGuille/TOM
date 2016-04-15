@@ -12,7 +12,7 @@ setup(
     author="Adrien Guille, Pavel Soriano",
     author_email="adrien.guille@univ-lyon2.fr",
     description="A library for topic modeling and browsing",
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     url='http://mediamining.univ-lyon2.fr/people/guille/tom.php',
     classifiers=[
         'Programming Language :: Python',

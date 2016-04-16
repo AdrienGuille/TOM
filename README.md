@@ -12,6 +12,12 @@ Eventually, clone or download this repo and run the following command:
 python setup.py install
 ```
 
+Or, download it directly from PyPi:
+
+```
+pip install tom_lib
+```
+
 ## Usage
 
 We provide two sample programs, topic_model.py (which shows you how to load and prepare a corpus, estimate the optimal number of topics, infer the topic model and then manipulate it) and topic_model_browser.py (which shows you how to generate a topic model browser to explore a corpus), to help you get started using TOM.

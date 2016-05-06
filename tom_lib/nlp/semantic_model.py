@@ -84,45 +84,45 @@ if __name__ == '__main__':
     elif platform.system() == 'Linux':
         input_file_path = '/home/adrien/datasets/HP/HP1.csv'
         output_file_path = '/home/adrien/datasets/HP/HP1_lemmatized.csv'
-    print 'Loading corpus...'
+    print('Loading corpus...')
     corpus = Corpus(source_file_path=input_file_path,
                     vectorization='tf',
                     max_relative_frequency=0.75,
                     min_absolute_frequency=4,
                     preprocessor=EnglishLemmatizer())
-    print ' - corpus size:', corpus.size
-    print ' - vocabulary size:', len(corpus.vocabulary)
+    print(' - corpus size:', corpus.size)
+    print(' - vocabulary size:', len(corpus.vocabulary))
     corpus.export(output_file_path)
 
-    print 'Computing semantic model...'
-    print ' - calculating raw frequencies...'
+    print('Computing semantic model...')
+    print(' - calculating raw frequencies...')
     model = SemanticModel(corpus, window=7)
 
-    print ' - transforming raw frequencies (Positive Pointwise Mutual Information)...'
+    print(' - transforming raw frequencies (Positive Pointwise Mutual Information)...')
     model.ppmi_transform(laplace_smoothing=2)
 
-    print ' - smoothing model (SVD)...'
+    print(' - smoothing model (SVD)...')
     model.svd_smoothing(dimension=300)
 
     while True:
         choice = input('type l to lookup a word\'s id, s to find synonyms of a word')
         if choice == 'l':
             a_word = input('Word: ')
-            print 'This word\'s id is: ', corpus.id_for_word(a_word)
+            print('This word\'s id is: ', corpus.id_for_word(a_word))
         if choice == 's':
             a_word_id = input('Word id: ')
-            print 'This id corresponds to: ', corpus.word_for_id(a_word_id)
+            print('This id corresponds to: ', corpus.word_for_id(a_word_id))
             for similar_word_id in model.most_similar_words(model.word_context_matrix[a_word_id, :], 5):
-                print corpus.word_for_id(similar_word_id)
+                print(corpus.word_for_id(similar_word_id))
         elif choice == '-':
             word_a = input('word (a) id: ')
             word_b = input('word (b) id: ')
             word_c = np.substract(model.word_context_matrix[word_a, :], model.word_context_matrix[word_b, :])
             for similar_word_id in model.most_similar_words(word_c, 5):
-                print corpus.word_for_id(similar_word_id)
+                print(corpus.word_for_id(similar_word_id))
             else:
                 word_a = input('word (a) id: ')
                 word_b = input('word (b) id: ')
                 word_c = np.add(model.word_context_matrix[word_a, :], model.word_context_matrix[word_b, :])
                 for similar_word_id in model.most_similar_words(word_c, 5):
-                    print corpus.word_for_id(similar_word_id)
+                    print(corpus.word_for_id(similar_word_id))

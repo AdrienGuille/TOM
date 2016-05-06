@@ -1,7 +1,6 @@
 # coding: utf-8
 import itertools
 from abc import ABCMeta, abstractmethod
-
 import numpy as np
 import tom_lib.stats
 from gensim import models, matutils
@@ -129,13 +128,13 @@ class TopicModel(object):
             word_list = []
             for weighted_word in self.top_words(topic_id, num_words):
                 word_list.append(weighted_word[0])
-            print 'topic %i: %s (%f)' % (topic_id, ' '.join(word_list), frequency[topic_id])
+            print('topic %i: %s (%f)' % (topic_id, ' '.join(word_list), frequency[topic_id]))
 
     def top_words(self, topic_id, num_words):
         vector = self.topic_word_matrix[topic_id]
         cx = vector.tocoo()
         weighted_words = [()] * len(self.corpus.vocabulary)
-        for row, word_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for row, word_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
             weighted_words[word_id] = (self.corpus.word_for_id(word_id), weight)
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
@@ -144,7 +143,7 @@ class TopicModel(object):
         vector = self.topic_word_matrix[:, word_id]
         cx = vector.tocoo()
         distribution = [0.0] * self.nb_topics
-        for topic_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for topic_id, col, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
             distribution[topic_id] = weight
         return distribution
 
@@ -152,7 +151,7 @@ class TopicModel(object):
         vector = self.topic_word_matrix[topic_id]
         cx = vector.tocoo()
         weights = [0.0] * self.nb_topics
-        for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for row, topic_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
             weights[topic_id] = weight
         return weights
 
@@ -160,7 +159,7 @@ class TopicModel(object):
         vector = self.document_topic_matrix[doc_id]
         cx = vector.tocoo()
         weights = [0.0] * self.nb_topics
-        for row, topic_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for row, topic_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
             weights[topic_id] = weight
         return weights
 
@@ -168,7 +167,7 @@ class TopicModel(object):
         vector = self.topic_word_matrix[:, word_id]
         cx = vector.tocoo()
         distribution = [0.0] * self.nb_topics
-        for topic_id, col, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for topic_id, col, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
             distribution[topic_id] = weight
         return distribution
 
@@ -241,7 +240,7 @@ class TopicModel(object):
                     else:
                         counts[affiliation] = 1
         tuples = []
-        for affiliation, count in counts.iteritems():
+        for affiliation, count in counts.items():
             tuples.append((affiliation, count))
         tuples.sort(key=lambda x: x[1], reverse=True)
         return tuples

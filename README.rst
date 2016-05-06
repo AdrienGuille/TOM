@@ -1,7 +1,7 @@
 TOM
 ===
 
-TOM (TOpic Modeling) is a Python 2.7 library for topic modeling and
+TOM (TOpic Modeling) is a Python 3 library for topic modeling and
 browsing. Its objective is to allow for an efficient analysis of a text
 corpus from start to finish, via the discovery of latent topics. To this
 end, TOM features functions for preparing and vectorizing a text corpus.

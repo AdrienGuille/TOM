@@ -1,5 +1,4 @@
 # coding: utf-8
-import codecs
 from abc import ABCMeta, abstractmethod
 from nltk.stem import WordNetLemmatizer
 from nltk import wordpunct_tokenize
@@ -40,6 +39,7 @@ class PreProcessor(object):
 class FrenchLemmatizer(PreProcessor):
 
     def __init__(self):
+        super().__init__()
         self.script_path = 'nlp/melt.sh'
 
     def process_sentence(self, sentence):
@@ -47,17 +47,18 @@ class FrenchLemmatizer(PreProcessor):
         output = subprocess.check_output(('MElt', '-L'), stdin=ps.stdout)
         ps.wait()
         stemmed_sentence = []
-        for annotated_token in output.split(' '):
-            tag = annotated_token.split('/')
+        for annotated_token in output.split(str.encode(' ')):
+            tag = annotated_token.split(str.encode('/'))
             if len(tag) == 3:
                 if '|' not in tag[2]:
-                    stemmed_sentence.append(tag[2].replace('\n', ''))
+                    stemmed_sentence.append(tag[2].replace(str.encode('\n'), str.encode('')))
         return ' '.join(stemmed_sentence)
 
 
 class EnglishStemmer(PreProcessor):
 
     def __init__(self):
+        super().__init__()
         self.stemmer = SnowballEnglishStemmer()
 
     def process_sentence(self, sentence):
@@ -71,6 +72,7 @@ class EnglishStemmer(PreProcessor):
 class EnglishLemmatizer(PreProcessor):
 
     def __init__(self, skip_token_without_pos=False):
+        super().__init__()
         self.lemmatizer = WordNetLemmatizer()
         self.skip = skip_token_without_pos
 

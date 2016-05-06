@@ -1,5 +1,4 @@
 # coding: utf-8
-from gensim import matutils
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import networkx as nx
@@ -83,10 +82,10 @@ class Corpus:
         return self.data_frame.iloc[doc_id]['date']
 
     def authors(self, doc_id):
-        return unicode(self.data_frame.iloc[doc_id]['authors']).split(', ')
+        return self.data_frame.iloc[doc_id]['authors'].split(', ')
 
     def affiliations(self, doc_id):
-        return unicode(self.data_frame.iloc[doc_id]['affiliations']).split(', ')
+        return self.data_frame.iloc[doc_id]['affiliations'].split(', ')
 
     def documents_by_author(self, author, date=None):
         ids = []
@@ -122,7 +121,7 @@ class Corpus:
         vector = self.sklearn_vector_space[doc_id]
         cx = vector.tocoo()
         weights = [0.0] * len(self.vocabulary)
-        for row, word_id, weight in itertools.izip(cx.row, cx.col, cx.data):
+        for row, word_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
             weights[word_id] = weight
         return weights
 

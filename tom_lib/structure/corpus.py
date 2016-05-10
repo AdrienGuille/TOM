@@ -82,10 +82,12 @@ class Corpus:
         return self.data_frame.iloc[doc_id]['date']
 
     def authors(self, doc_id):
-        return self.data_frame.iloc[doc_id]['authors'].split(', ')
+        aut_str = str(self.data_frame.iloc[doc_id]['authors'])
+        return aut_str.split(', ')
 
     def affiliations(self, doc_id):
-        return self.data_frame.iloc[doc_id]['affiliations'].split(', ')
+        aff_str = str(self.data_frame.iloc[doc_id]['affiliations'])
+        return aff_str.split(', ')
 
     def documents_by_author(self, author, date=None):
         ids = []

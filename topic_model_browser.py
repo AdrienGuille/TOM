@@ -26,8 +26,8 @@ corpus = Corpus(source_file_path='input/egc_lemmatized.csv',
                 max_relative_frequency=max_tf,
                 min_absolute_frequency=min_tf,
                 preprocessor=preprocessor)
-print 'corpus size:', corpus.size
-print 'vocabulary size:', len(corpus.vocabulary)
+print('corpus size:', corpus.size)
+print('vocabulary size:', len(corpus.vocabulary))
 
 # Infer topics
 topic_model = NonNegativeMatrixFactorization(corpus=corpus)
@@ -111,13 +111,6 @@ def vocabulary():
                            doc_ids=range(corpus.size),
                            splitted_vocabulary=splitted_vocabulary,
                            vocabulary_size=len(word_list))
-
-
-@app.route('/author_topic_graph.html')
-def author_topic_graph():
-    return render_template('author_topic_graph.html',
-                           topic_ids=range(topic_model.nb_topics),
-                           doc_ids=range(corpus.size))
 
 
 @app.route('/topic/<tid>.html')

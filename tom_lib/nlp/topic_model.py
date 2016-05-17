@@ -263,9 +263,9 @@ class LatentDirichletAllocation(TopicModel):
         data = []
         for topic_id in range(self.nb_topics):
             topic_description = tmp_topic_word_matrix[topic_id]
-            for probability, word_id in topic_description:
+            for word_id, probability in topic_description[1]:
                 row.append(topic_id)
-                col.append(word_id)
+                col.append(int(word_id))
                 data.append(probability)
         self.topic_word_matrix = coo_matrix((data, (row, col)),
                                             shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()

@@ -34,9 +34,9 @@ corpus = Corpus(source_file_path='input/raw_corpus.csv',
                 max_relative_frequency=0.8, 
                 min_absolute_frequency=4,
                 preprocessor=FrenchLemmatizer())
-print 'corpus size:', corpus.size
-print 'vocabulary size:', len(corpus.vocabulary)
-print 'Vector for document 0:\n', corpus.vector_for_document(0)
+print('corpus size:', corpus.size)
+print('vocabulary size:', len(corpus.vocabulary))
+print('Vector representation of document 0:\n', corpus.vector_for_document(0))
 ```
 
 The following code snippet show how to load a corpus without any preprocessing.
@@ -81,15 +81,16 @@ topic_model = utils.load_topic_model('output/NMF_15topics.tom')
 This code excerpt illustrates how one can manipulate a topic model, e.g. get the topic distribution for a document or the word distribution for a topic.
 
 ```
-print '\nTopics:', topic_model.print_topics(num_words=10)
-print '\nTopic distribution for document 0:', \
-    topic_model.topic_distribution_for_document(0)
-print '\nMost likely topic for document 0:', \
-    topic_model.most_likely_topic_for_document(0)
-print '\nFrequency of topics:', \
-    topic_model.topics_frequency()
-print '\nTop 10 most relevant words for topic 2:', \
-    topic_model.top_words(2, 10)
+print('\nTopics:')
+topic_model.print_topics(num_words=10)
+print('\nTopic distribution for document 0:',
+      topic_model.topic_distribution_for_document(0))
+print('\nMost likely topic for document 0:',
+      topic_model.most_likely_topic_for_document(0))
+print('\nFrequency of topics:',
+      topic_model.topics_frequency())
+print('\nTop 10 most relevant words for topic 2:',
+      topic_model.top_words(2, 10))
 ```
 
 ## Topic model browser: screenshots

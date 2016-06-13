@@ -118,8 +118,8 @@ def topic_details(tid):
     ids = topic_associations[int(tid)]
     documents = []
     for document_id in ids:
-        documents.append((corpus.short_content(document_id).capitalize(),
-                          ', '.join(corpus.authors(document_id)),
+        documents.append((corpus.title(document_id).capitalize(),
+                          ', '.join(corpus.author(document_id)),
                           corpus.date(document_id), document_id))
     return render_template('topic.html',
                            topic_id=tid,
@@ -139,8 +139,8 @@ def document_details(did):
     word_list.reverse()
     documents = []
     for another_doc in corpus.similar_documents(int(did), 5):
-        documents.append((corpus.short_content(another_doc[0]).capitalize(),
-                          ', '.join(corpus.authors(another_doc[0])),
+        documents.append((corpus.title(another_doc[0]).capitalize(),
+                          ', '.join(corpus.author(another_doc[0])),
                           corpus.date(another_doc[0]), another_doc[0], round(another_doc[1], 3)))
     return render_template('document.html',
                            doc_id=did,
@@ -148,17 +148,17 @@ def document_details(did):
                            topic_ids=range(topic_model.nb_topics),
                            doc_ids=range(corpus.size),
                            documents=documents,
-                           authors=', '.join(corpus.authors(int(did))),
+                           authors=', '.join(corpus.author(int(did))),
                            year=corpus.date(int(did)),
-                           short_content=corpus.short_content(int(did)))
+                           short_content=corpus.title(int(did)))
 
 
 @app.route('/word/<wid>.html')
 def word_details(wid):
     documents = []
     for document_id in corpus.docs_for_word(int(wid)):
-        documents.append((corpus.short_content(document_id).capitalize(),
-                          ', '.join(corpus.authors(document_id)),
+        documents.append((corpus.title(document_id).capitalize(),
+                          ', '.join(corpus.author(document_id)),
                           corpus.date(document_id), document_id))
     return render_template('word.html',
                            word_id=wid,

@@ -17,7 +17,7 @@ class AuthorTopicGraph:
             doc_ids = topic_associations[topic_id]
             authors = []
             for doc_id in doc_ids:
-                authors.extend(self.topic_model.corpus.authors(doc_id))
+                authors.extend(self.topic_model.corpus.author(doc_id))
             authors = set(authors)
             for author in authors:
                 self.graph.add_node(author, node_class='author')

@@ -231,7 +231,7 @@ class TopicModel(object):
         counts = {}
         doc_ids = self.documents_for_topic(topic_id)
         for i in doc_ids:
-            affiliations = set(self.corpus.affiliations(i))
+            affiliations = set(self.corpus.affiliation(i))
             for affiliation in affiliations:
                 if str(affiliation) not in ['nan', '@gmail.com', '@yahoo.fr']:
                     if counts.get(affiliation):

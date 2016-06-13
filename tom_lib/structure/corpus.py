@@ -13,7 +13,6 @@ __email__ = "adrien.guille@univ-lyon2.fr"
 
 
 class Corpus:
-    MAX_FEATURES = 2000
 
     def __init__(self,
                  source_file_path,
@@ -22,6 +21,7 @@ class Corpus:
                  vectorization='tfidf',
                  max_relative_frequency=1.,
                  min_absolute_frequency=0,
+                 max_features=2000,
                  preprocessor=None,
                  sample=None):
 
@@ -33,6 +33,7 @@ class Corpus:
         self._min_absolute_frequency = min_absolute_frequency
         self._preprocessor = preprocessor
 
+        self.max_features = max_features
         self.data_frame = pandas.read_csv(source_file_path, sep='\t', encoding='utf-8')
         if sample:
             self.data_frame = self.data_frame.sample(frac=0.8)
@@ -40,13 +41,13 @@ class Corpus:
         self.size = self.data_frame.count(0)[0]
         if preprocessor is not None:
             for i in self.data_frame.index.tolist():
-                full_content = self.data_frame.iloc[i]['full_content']
+                full_content = self.data_frame.iloc[i]['text']
                 sentence_end = re.compile('[.!?]')
                 sentences = sentence_end.split(full_content)
                 processed_sentences = []
                 for sentence in sentences:
                     processed_sentences.append(preprocessor.process_sentence(sentence))
-                self.data_frame.loc[i, 'full_content'] = ' '.join(processed_sentences)
+                self.data_frame.loc[i, 'text'] = ' '.join(processed_sentences)
         stop_words = []
         if language is not None:
             stop_words = stopwords.words(language)
@@ -54,17 +55,17 @@ class Corpus:
             vectorizer = TfidfVectorizer(ngram_range=(1, n_gram),
                                          max_df=max_relative_frequency,
                                          min_df=min_absolute_frequency,
-                                         max_features=self.MAX_FEATURES,
+                                         max_features=self.max_features,
                                          stop_words=stop_words)
         elif vectorization == 'tf':
             vectorizer = CountVectorizer(ngram_range=(1, n_gram),
                                          max_df=max_relative_frequency,
                                          min_df=min_absolute_frequency,
-                                         max_features=self.MAX_FEATURES,
+                                         max_features=self.max_features,
                                          stop_words=stop_words)
         else:
             raise ValueError('Unknown vectorization type: %s' % vectorization)
-        self.sklearn_vector_space = vectorizer.fit_transform(self.data_frame['full_content'].tolist())
+        self.sklearn_vector_space = vectorizer.fit_transform(self.data_frame['text'].tolist())
         self.gensim_vector_space = None
         vocab = vectorizer.get_feature_names()
         self.vocabulary = dict([(i, s) for i, s in enumerate(vocab)])
@@ -72,21 +73,21 @@ class Corpus:
     def export(self, file_path):
         self.data_frame.to_csv(path_or_buf=file_path, sep='\t', encoding='utf-8')
 
-    def full_content(self, doc_id):
-        return self.data_frame.iloc[doc_id]['full_content']
+    def full_text(self, doc_id):
+        return self.data_frame.iloc[doc_id]['text']
 
-    def short_content(self, doc_id):
-        return self.data_frame.iloc[doc_id]['short_content']
+    def title(self, doc_id):
+        return self.data_frame.iloc[doc_id]['title']
 
     def date(self, doc_id):
         return self.data_frame.iloc[doc_id]['date']
 
-    def authors(self, doc_id):
-        aut_str = str(self.data_frame.iloc[doc_id]['authors'])
+    def author(self, doc_id):
+        aut_str = str(self.data_frame.iloc[doc_id]['author'])
         return aut_str.split(', ')
 
-    def affiliations(self, doc_id):
-        aff_str = str(self.data_frame.iloc[doc_id]['affiliations'])
+    def affiliation(self, doc_id):
+        aff_str = str(self.data_frame.iloc[doc_id]['affiliation'])
         return aff_str.split(', ')
 
     def documents_by_author(self, author, date=None):
@@ -102,11 +103,11 @@ class Corpus:
     def all_authors(self):
         author_list = []
         for doc_id in range(self.size):
-            author_list.extend(self.authors(doc_id))
+            author_list.extend(self.author(doc_id))
         return list(set(author_list))
 
     def is_author(self, author, doc_id):
-        return author in self.authors(doc_id)
+        return author in self.author(doc_id)
 
     def docs_for_word(self, word_id):
         ids = []
@@ -149,7 +150,7 @@ class Corpus:
     def collaboration_network(self, doc_ids=None, nx_format=False):
         nx_graph = nx.Graph(name='')
         for doc_id in doc_ids:
-            authors = self.authors(doc_id)
+            authors = self.author(doc_id)
             for author in authors:
                 nx_graph.add_node(author)
             for i in range(0, len(authors)):

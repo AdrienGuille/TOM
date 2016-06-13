@@ -39,13 +39,6 @@
                 <option>{{ i }}</option>
             {% endfor %}
         </select>
-        -
-        <select onChange="window.location.href='../document/'+this.value+'.html'">
-            <option selected="selected" disabled="disabled">Details about a document</option>
-            {% for j in doc_ids %}
-                <option>{{ j }}</option>
-            {% endfor %}
-        </select>
     </div>
     <div id="header">
         <h1>Details about article {{ doc_id }}</h1>
@@ -60,7 +53,9 @@
             <h2>Vector representation</h2>
             <ul>
                 {% for weighted_word in words %}
-                    <li><strong><a href="../word/{{ weighted_word[2] }}.html">{{ weighted_word[0] }}</a></strong> ({{ weighted_word[1] }})</li>
+                    {% if weighted_word[1] > 0 %}
+                        <li><strong><a href="../word/{{ weighted_word[2] }}.html">{{ weighted_word[0] }}</a></strong> ({{ weighted_word[1] }})</li>
+                    {% endif %}
                 {% endfor %}
             </ul>
         </div>

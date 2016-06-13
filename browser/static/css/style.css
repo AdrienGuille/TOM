@@ -1,34 +1,72 @@
+@font-face{
+    font-family: OpenSans;
+    src : url('../fonts/opensans.eot'); /* IE9 */
+    src : url('../fonts/opensans.eot?') format('eot'),
+    url('../fonts/opensans.woff') format('woff'),
+    url('../fonts/opensans.ttf') format('truetype');
+}
+
+@font-face{
+    font-family: OpenSans-Bold;
+    src : url('../fonts/opensans-bold.eot'); /* IE9 */
+    src : url('../fonts/opensans-bold.eot?') format('eot'),
+    url('../fonts/opensans-bold.woff') format('woff'),
+    url('../fonts/opensans-bold.ttf') format('truetype');}
+
 h1{
-    font: 20px;
+    font: 20px OpenSans-Bold;
+    color:#fff;
     line-height: 44px;
     margin: 0;
 }
 
 h2{
-    font: 17px;
+    font: 17px OpenSans-Bold;
+    color:#000;
 }
 
 h3{
-    font: 14px;
+    font: 14px OpenSans-Bold;
+    color:#000;
+}
+
+section {
+	font-family: OpenSans-Bold;
+	font-size:20px;
+	line-height:44px;
+	color:#333333;
 }
 
 select{
-    font: 11px;
+    height: 20px;
+    line-height: 40px;
+    font: 11px OpenSans;
+    margin: auto;
+}
+
+button{
+    height: 20px;
+    line-height: 40px;
+    font: 11px OpenSans;
+    margin: auto;
 }
 
 body {
-    font: 11px;
+    font: 11px OpenSans;
     width: 100%;
     margin: auto;
     text-align: center;
+    color:#888888;
 }
 
 #navigation{
+    background-color:#444444;
     height: 40px;
     line-height: 40px;
 }
 
 #header{
+    background-color:#333333;
     line-height: 40px;
 }
 
@@ -51,9 +89,51 @@ body {
   float:left;
 }
 
+#three_columns {
+  text-align: left;
+  width:333px;
+  margin:0 auto;
+  float:left;
+}
+
+#one_column {
+  text-align: left;
+  width:1000px;
+  margin:0 auto;
+  float:left;
+}
+
 #right_column {
   text-align: left;
   width:400px;
   margin:0 auto;
   float:right;
 }
+
+.main-content {
+	max-width: 900px;
+	min-width: 900px;
+	text-align: justify;
+	margin: auto;
+	padding: 5px;
+}
+
+a.class1{
+  font: 12px OpenSans-Bold;
+}
+a.class1:link {color: #444; text-decoration:none;}
+a.class1:visited {color: #444;}
+a.class1:hover {color: #55acee;}
+
+
+a.class2{
+  font: 11px OpenSans;
+}
+a.class2:link {color: #888; text-decoration:none;}
+a.class2:visited {color: #888;}
+a.class2:hover {color: #55acee;}
+
+a:link {color: #55acee;}
+a:visited {color: #55acee;}
+a:hover {color: #000;}
+a:active {color: #55acee;}

@@ -10,3 +10,5 @@
 misc/
 
 browser/static/data/
+
+*local.py

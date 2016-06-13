@@ -36,13 +36,6 @@ text {
                 <option>{{ i }}</option>
             {% endfor %}
         </select>
-        -
-        <select onChange="window.location.href='../document/'+this.value+'.html'">
-            <option selected="selected" disabled="disabled">Details about a document</option>
-            {% for j in doc_ids %}
-                <option>{{ j }}</option>
-            {% endfor %}
-        </select>
     </div>
     <div id="header">
         <h1>Topic cloud</h1>

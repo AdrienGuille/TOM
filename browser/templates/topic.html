@@ -1,300 +1,304 @@
 <!DOCTYPE html>
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Type" content="text/html">
-  <title>Details about topic {{ topic_id }}</title>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/style.css') }}"/>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html">
+    <title>Details about topic {{ topic_id }}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'css/style.css') }}"/>
+    <link href="../static/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
+    <script src="../static/js/jquery-1.12.0.min.js" charset="utf-8"></script>
+    <script src="../static/js/jquery.dataTables.min.js" charset="utf-8"></script>
 </head>
 <style>
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
 
-.bar {
-  fill: #3DC9FF;
-}
+    .bar {
+        fill: #55acee;
+    }
 
-.bar:hover {
-  fill: #34aad8;
-}
+    .bar:hover {
+        fill: #55acee;
+    }
 
-.x.axis path {
-  display: none;
-}
+    .x.axis path {
+        display: none;
+    }
 
-.line {
-  fill: none;
-  stroke: #ff5611;
-  stroke-width: 1.5px;
-}
+    .line {
+        fill: none;
+        stroke: #ff5611;
+        stroke-width: 1.5px;
+    }
 
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
+    .node {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
 
-.link {
-  stroke: #999;
-  stroke-opacity: 2;
-}
+    .link {
+      stroke: #999;
+      stroke-opacity: 2;
+    }
 </style>
 <body>
-    <div id="navigation">
-        <select onChange="window.location.href=((this.value == 'topics') ? '../topic_cloud.html' : '../vocabulary.html')">
-            <option selected="selected" disabled="disabled">Overview</option>
-            <option>topics</option>
-            <option>vocabulary</option>
-        </select>
-        -
-        <select onChange="window.location.href='../topic/'+this.value+'.html'">
-            <option selected="selected" disabled="disabled">Details about a topic</option>
-            {% for i in topic_ids %}
-                <option>{{ i }}</option>
-            {% endfor %}
-        </select>
-        -
-        <select onChange="window.location.href='../document/'+this.value+'.html'">
-            <option selected="selected" disabled="disabled">Details about a document</option>
-            {% for j in doc_ids %}
-                <option>{{ j }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div id="header">
-        <h1>Details about topic {{ topic_id }}</h1>
-        Overall frequency : {{ frequency }}%
-    </div>
-    <div id="wrap">
-        <div id="left_column">
-            <h2>Top words</h2>
-            <bar-chart></bar-chart>
-            <h2>Topic frequency</h2>
-            <line-chart></line-chart>
-            <h2>Author network</h2>
-            <author-network></author-network>
-            <h2>Number of documents per institution</h2>
-            <bar-chart2></bar-chart2>
-        </div>
-        <div id="right_column">
-        <h2>Related documents ({{documents|length}})</h2>
-        <ul>
-            {% for doc in documents %}
-                <li>
-                    <strong><a href="../document/{{ doc[3] }}.html">{{ doc[0] }}</a></strong>
-                    <br>
-                    {{ doc[1] }}
-                    <br>
-                    <i>{{ doc[2] }}</i>
-                </li>
-            {% endfor %}
-        </ul>
-        </div>
-    </div>
+<div id="navigation">
+    <select onChange="window.location.href=((this.value == 'topics') ? '../topic_cloud.html' : '../vocabulary.html')">
+        <option selected="selected" disabled="disabled">Overview</option>
+        <option>topics</option>
+        <option>vocabulary</option>
+    </select>
+    -
+    <select onChange="window.location.href='../topic/'+this.value+'.html'">
+        <option selected="selected" disabled="disabled">Details about a topic</option>
+        {% for i in topic_ids %}
+            <option>{{ i }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div id="header">
+    <h1>Details about topic {{ topic_id }}</h1>
+    Overall frequency : {{ frequency }}%
+</div>
+<div id="wrap">
+    <h2>Most relevant words</h2>
+    <bar-chart></bar-chart>
+    <h2>Related documents ({{documents|length}})</h2>
+    <table id="documents" class="display" cellspacing="0" width="900px">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author(s)</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for doc in documents %}
+            <tr>
+                <td>{{ doc[0] }}</td>
+                <td>{{ doc[1] }}</td>
+                <td>{{ doc[2] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <h2>Topic frequency</h2>
+    <line-chart></line-chart>
+    <h2>Author network</h2>
+    <author-network></author-network>
+    <h2>Number of documents per institution</h2>
+    <bar-chart2></bar-chart2>
+</div>
 </body>
+<script>
+    $(document).ready(function(){
+        $('#documents').DataTable();
+    });
+</script>
 <script src="{{ url_for('static', filename = 'js/d3.min.js' )}}"></script>
 <script>
-// (document.body.clientWidth)*0.6
-var margin = {top: 10, right: 0, bottom: 100, left: 40},
-    width = 600 - margin.left - margin.right,
-    height = 350 - margin.top - margin.bottom;
-var x = d3.scale.ordinal()
-    .rangeRoundBands([0, width], .1);
-var y = d3.scale.linear()
-    .range([height, 0]);
-var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom");
-var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left");
-var svg = d3.select("bar-chart").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-d3.tsv("{{ url_for('static', filename = 'data/word_distribution'+topic_id+'.tsv') }}", type, function(error, data) {
-  x.domain(data.map(function(d) { return d.word; }));
-  y.domain([0, d3.max(data, function(d) { return d.weight; })]);
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
-      .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-1em")
-            .attr("dy", "-0.7em")
-            .attr("transform", "rotate(-90)" );
-  svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 2)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Weight");
-  svg.selectAll(".bar")
-      .data(data)
-    .enter().append("rect")
-      .attr("class", "bar")
-      .attr("x", function(d) { return x(d.word); })
-      .attr("width", x.rangeBand())
-      .attr("y", function(d) { return y(d.weight); })
-      .attr("height", function(d) { return height - y(d.weight); })
-});
-function type(d) {
-  d.weight = +d.weight;
-  return d;
-}
+    // (document.body.clientWidth)*0.6
+    var margin = {top: 10, right: 0, bottom: 100, left: 40},
+            width = 900 - margin.left - margin.right,
+            height = 350 - margin.top - margin.bottom;
+    var x = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .1);
+    var y = d3.scale.linear()
+            .range([height, 0]);
+    var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+    var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+    var svg = d3.select("bar-chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    d3.tsv("{{ url_for('static', filename = 'data/word_distribution'+topic_id+'.tsv') }}", type, function(error, data) {
+        x.domain(data.map(function(d) { return d.word; }));
+        y.domain([0, d3.max(data, function(d) { return d.weight; })]);
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-1em")
+                .attr("dy", "-0.7em")
+                .attr("transform", "rotate(-90)" );
+        svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 2)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Weight");
+        svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x(d.word); })
+                .attr("width", x.rangeBand())
+                .attr("y", function(d) { return y(d.weight); })
+                .attr("height", function(d) { return height - y(d.weight); })
+    });
+    function type(d) {
+        d.weight = +d.weight;
+        return d;
+    }
 </script>
 <script>
-var margin2 = {top: 10, right: 20, bottom: 30, left: 45},
-    width2 = 600 - margin2.left - margin2.right,
-    height2 = 150 - margin2.top - margin2.bottom;
-var formatPercent = d3.format(".0%");
-var x2 = d3.scale.linear()
-    .range([0, width2]);
-var y2 = d3.scale.linear()
-    .range([height2, 0]);
-var xAxis2 = d3.svg.axis()
-    .scale(x2)
-    .tickFormat(d3.format("d"))
-    .orient("bottom");
-var yAxis2 = d3.svg.axis()
-    .scale(y2)
-    .tickFormat(formatPercent)
-    .orient("left");
-var line = d3.svg.line()
-    .x(function(d) { return x2(d.date); })
-    .y(function(d) { return y2(d.frequency); });
-var svg2 = d3.select("line-chart").append("svg")
-    .attr("width", width2 + margin2.left + margin2.right)
-    .attr("height", height2 + margin2.top + margin2.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
-d3.tsv("{{ url_for('static', filename = 'data/frequency'+topic_id+'.tsv') }}", function(error, data2) {
-  if (error) throw error;
+    var margin2 = {top: 10, right: 20, bottom: 30, left: 45},
+            width2 = 600 - margin2.left - margin2.right,
+            height2 = 150 - margin2.top - margin2.bottom;
+    var formatPercent = d3.format(".0%");
+    var x2 = d3.scale.linear()
+            .range([0, width2]);
+    var y2 = d3.scale.linear()
+            .range([height2, 0]);
+    var xAxis2 = d3.svg.axis()
+            .scale(x2)
+            .tickFormat(d3.format("d"))
+            .orient("bottom");
+    var yAxis2 = d3.svg.axis()
+            .scale(y2)
+            .tickFormat(formatPercent)
+            .ticks(4)
+            .orient("left");
+    var line = d3.svg.line()
+            .x(function(d) { return x2(d.date); })
+            .y(function(d) { return y2(d.frequency); });
+    var svg2 = d3.select("line-chart").append("svg")
+            .attr("width", width2 + margin2.left + margin2.right)
+            .attr("height", height2 + margin2.top + margin2.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+    d3.tsv("{{ url_for('static', filename = 'data/frequency'+topic_id+'.tsv') }}", function(error, data2) {
+        if (error) throw error;
 
-  data2.forEach(function(d) {
-    d.date = d.date;
-    d.frequency = +d.frequency;
-  });
-  x2.domain(d3.extent(data2, function(d) { return d.date; }));
-  y2.domain(d3.extent(data2, function(d) { return d.frequency; }));
-  svg2.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height2 + ")")
-      .call(xAxis2);
-  svg2.append("g")
-      .attr("class", "y axis")
-      .call(yAxis2)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 2)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Frequency");
-  svg2.append("path")
-      .datum(data2)
-      .attr("class", "line")
-      .attr("d", line);
-});
+        data2.forEach(function(d) {
+            d.date = d.date;
+            d.frequency = +d.frequency;
+        });
+        x2.domain(d3.extent(data2, function(d) { return d.date; }));
+        y2.domain(d3.extent(data2, function(d) { return d.frequency; }));
+        svg2.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height2 + ")")
+                .call(xAxis2);
+        svg2.append("g")
+                .attr("class", "y axis")
+                .call(yAxis2)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Frequency");
+        svg2.append("path")
+                .datum(data2)
+                .attr("class", "line")
+                .attr("d", line);
+    });
 </script>
 <script>
-var width3 = 600,
-    height3 = 400;
-var force = d3.layout.force()
-    .charge(-50)
-    .linkDistance(20)
-    .size([width3, height3]);
-var svg3 = d3.select("author-network").append("svg")
-    .attr("width", width3)
-    .attr("height", height3);
-d3.json("{{ url_for('static', filename = 'data/author_network'+topic_id+'.json') }}", function(error, graph) {
-  if (error) throw error;
-  force
-      .nodes(graph.nodes)
-      .links(graph.links)
-      .start();
-  var link = svg3.selectAll(".link")
-      .data(graph.links)
-    .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", 1);
-  var node3 = svg3.selectAll(".node")
-      .data(graph.nodes)
-    .enter().append("circle")
-      .attr("class", "node")
-      .attr("r", function(d) { return 5+d.betweenness*100; })
-      .style("fill", "red")
-      .call(force.drag);
-  node3.append("title")
-      .text(function(d) { return d.name; });
-  force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-    node3.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-  });
-});
+    var width3 = 600,
+            height3 = 400;
+    var force = d3.layout.force()
+            .charge(-50)
+            .linkDistance(20)
+            .size([width3, height3]);
+    var svg3 = d3.select("author-network").append("svg")
+            .attr("width", width3)
+            .attr("height", height3);
+    d3.json("{{ url_for('static', filename = 'data/author_network'+topic_id+'.json') }}", function(error, graph) {
+        if (error) throw error;
+        force
+                .nodes(graph.nodes)
+                .links(graph.links)
+                .start();
+        var link = svg3.selectAll(".link")
+                .data(graph.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .style("stroke-width", 1);
+        var node3 = svg3.selectAll(".node")
+                .data(graph.nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", function(d) { return 5+d.betweenness*100; })
+                .style("fill", "red")
+                .call(force.drag);
+        node3.append("title")
+                .text(function(d) { return d.name; });
+        force.on("tick", function() {
+            link.attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
+            node3.attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; });
+        });
+    });
 </script>
 <script>
-var margin4 = {top: 10, right: 0, bottom: 100, left: 40},
-    width4 = 600 - margin.left - margin.right,
-    height4 = 350 - margin.top - margin.bottom;
-var x4 = d3.scale.ordinal()
-    .rangeRoundBands([0, width4], .1);
-var y4 = d3.scale.linear()
-    .range([height4, 0]);
-var xAxis4 = d3.svg.axis()
-    .scale(x4)
-    .orient("bottom");
-var yAxis4 = d3.svg.axis()
-    .scale(y4)
-    .orient("left");
-var svg4 = d3.select("bar-chart2").append("svg")
-    .attr("width", width4 + margin4.left + margin4.right)
-    .attr("height", height4 + margin4.top + margin4.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin4.left + "," + margin4.top + ")");
-d3.tsv("{{ url_for('static', filename = 'data/affiliation_repartition'+topic_id+'.tsv') }}", type, function(error, data4) {
-  x4.domain(data4.map(function(d) { return d.affiliation; }));
-  y4.domain([0, d3.max(data4, function(d) { return d.count; })]);
-  svg4.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height4 + ")")
-      .call(xAxis4)
-      .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-1em")
-            .attr("dy", "-0.7em")
-            .attr("transform", "rotate(-90)" );
-  svg4.append("g")
-      .attr("class", "y axis")
-      .call(yAxis4)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 2)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Count");
-  svg4.selectAll(".bar")
-      .data(data4)
-    .enter().append("rect")
-      .attr("class", "bar")
-      .attr("x", function(d) { return x4(d.affiliation); })
-      .attr("width", x4.rangeBand())
-      .attr("y", function(d) { return y4(d.count); })
-      .attr("height", function(d) { return height4 - y4(d.count); })
-});
+    var margin4 = {top: 10, right: 0, bottom: 100, left: 40},
+            width4 = 600 - margin.left - margin.right,
+            height4 = 350 - margin.top - margin.bottom;
+    var x4 = d3.scale.ordinal()
+            .rangeRoundBands([0, width4], .1);
+    var y4 = d3.scale.linear()
+            .range([height4, 0]);
+    var xAxis4 = d3.svg.axis()
+            .scale(x4)
+            .orient("bottom");
+    var yAxis4 = d3.svg.axis()
+            .scale(y4)
+            .orient("left");
+    var svg4 = d3.select("bar-chart2").append("svg")
+            .attr("width", width4 + margin4.left + margin4.right)
+            .attr("height", height4 + margin4.top + margin4.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin4.left + "," + margin4.top + ")");
+    d3.tsv("{{ url_for('static', filename = 'data/affiliation_repartition'+topic_id+'.tsv') }}", type, function(error, data4) {
+        x4.domain(data4.map(function(d) { return d.affiliation; }));
+        y4.domain([0, d3.max(data4, function(d) { return d.count; })]);
+        svg4.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height4 + ")")
+                .call(xAxis4)
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-1em")
+                .attr("dy", "-0.7em")
+                .attr("transform", "rotate(-90)" );
+        svg4.append("g")
+                .attr("class", "y axis")
+                .call(yAxis4)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 2)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Count");
+        svg4.selectAll(".bar")
+                .data(data4)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x4(d.affiliation); })
+                .attr("width", x4.rangeBand())
+                .attr("y", function(d) { return y4(d.count); })
+                .attr("height", function(d) { return height4 - y4(d.count); })
+    });
 
-function type(d) {
-  d.count = +d.count;
-  return d;
-}
+    function type(d) {
+        d.count = +d.count;
+        return d;
+    }
 </script>

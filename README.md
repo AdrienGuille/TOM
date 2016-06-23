@@ -22,7 +22,7 @@ pip install tom_lib
 
 We provide two sample programs, topic_model.py (which shows you how to load and prepare a corpus, estimate the optimal number of topics, infer the topic model and then manipulate it) and topic_model_browser.py (which shows you how to generate a topic model browser to explore a corpus), to help you get started using TOM.
 
-###Load and prepare a text corpus
+###Load and prepare a textual corpus
 
 The following code snippet shows how to load a corpus of French documents and vectorize them using tf-idf with unigrams.
 
@@ -40,7 +40,7 @@ print('Vector representation of document 0:\n', corpus.vector_for_document(0))
 
 ### Instantiate a topic model and infer topics
 
-We can instantiate a NMF or LDA object then infer topics. 
+It is possible to instantiate a NMF or LDA object then infer topics. 
 
 NMF:
 
@@ -60,6 +60,12 @@ topic_model = LatentDirichletAllocation(corpus)
 topic_model.infer_topics(num_topics=15, algorithm='gibbs')
 ```
 
+### Instantiate a topic model and estimate the optimal number of topics
+
+Here we instantiate a NMF object, then generate plots with the three metrics for estimating the optimal number of topics.
+
+```
+topic_model = NonNegativeMatrixFactorization(corpus)
 viz = Visualization(topic_model)
 viz.plot_greene_metric(min_num_topics=5, 
                        max_num_topics=50, 

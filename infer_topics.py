@@ -9,7 +9,7 @@ __email__ = "adrien.guille@univ-lyon2.fr"
 
 # Load and prepare a corpus
 print('Load documents from CSV')
-corpus = Corpus(source_file_path='input/egc.csv',
+corpus = Corpus(source_file_path='input/egc_lemmatized.csv',
                 language='french',  # language for stop words
                 vectorization='tfidf',  # 'tf' (term-frequency) or 'tfidf' (term-frequency inverse-document-frequency)
                 max_relative_frequency=0.8,  # ignore words which relative frequency is > than max_relative_frequency
@@ -25,7 +25,7 @@ topic_model = NonNegativeMatrixFactorization(corpus)
 print('Estimating the number of topics...')
 viz = Visualization(topic_model)
 viz.plot_greene_metric(min_num_topics=10,
-                       max_num_topics=30,
+                       max_num_topics=11,
                        tao=10, step=1,
                        top_n_words=10)
 viz.plot_arun_metric(min_num_topics=5,

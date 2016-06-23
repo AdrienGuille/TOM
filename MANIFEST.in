@@ -1,5 +1,5 @@
-pinclude README*
-include topic_model.py
-include topic_model_browser.py
+include README*
+include build_topic_model_browser.py
+include infer_topics
 recursive-include browser *.*
 recursive-include input *.*

@@ -24,6 +24,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering',
         'Topic :: Text Processing'
-    ], requires=['nltk', 'scikit-learn', 'networkx', 'pandas', 'scipy', 'gensim', 'numpy'])
+    ], 
+    requires=['nltk', 'scikit-learn', 'networkx', 'pandas', 'scipy', 'gensim', 'numpy'])
 
 

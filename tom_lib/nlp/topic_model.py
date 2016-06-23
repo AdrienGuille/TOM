@@ -41,9 +41,9 @@ class TopicModel(object):
         stability = []
         # Build reference topic model
         # Generate tao topic models with tao samples of the corpus
-        for k in np.arange(min_num_topics, max_num_topics + 1, step):
+        for k in range(min_num_topics, max_num_topics + 1, step):
             self.infer_topics(k)
-            reference_rank = [list(zip(*self.top_words(i, top_n_words))[0]) for i in range(k)]
+            reference_rank = [list(zip(*self.top_words(i, top_n_words)))[0] for i in range(k)]
             agreement_score_list = []
             for t in range(tao):
                 tao_corpus = Corpus(source_file_path=self.corpus._source_file_path,
@@ -55,7 +55,7 @@ class TopicModel(object):
                                     sample=True)
                 tao_model = type(self)(tao_corpus)
                 tao_model.infer_topics(k)
-                tao_rank = [list(zip(*tao_model.top_words(i, top_n_words))[0]) for i in range(k)]
+                tao_rank = [next(zip(*tao_model.top_words(i, top_n_words))) for i in range(k)]
                 agreement_score_list.append(tom_lib.stats.agreement_score(reference_rank, tao_rank))
             stability.append(np.mean(agreement_score_list))
         return stability

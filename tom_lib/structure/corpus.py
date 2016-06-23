@@ -37,11 +37,7 @@ class Corpus:
             self.data_frame = self.data_frame.sample(frac=0.8)
         self.data_frame.fillna(' ')
         self.size = self.data_frame.count(0)[0]
-        for i in self.data_frame.index.tolist():
-            full_content = self.data_frame.iloc[i]['text']
-            sentence_end = re.compile('[.!?]')
-            sentences = sentence_end.split(full_content)
-            self.data_frame.loc[i, 'text'] = ' '.join(sentences)
+
         stop_words = []
         if language is not None:
             stop_words = stopwords.words(language)

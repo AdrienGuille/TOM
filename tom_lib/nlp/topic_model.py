@@ -52,7 +52,6 @@ class TopicModel(object):
                                     vectorization=self.corpus._vectorization,
                                     max_relative_frequency=self.corpus._max_relative_frequency,
                                     min_absolute_frequency=self.corpus._min_absolute_frequency,
-                                    preprocessor=self.corpus._preprocessor,
                                     sample=True)
                 tao_model = type(self)(tao_corpus)
                 tao_model.infer_topics(k)

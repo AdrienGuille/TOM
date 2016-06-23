@@ -22,7 +22,6 @@ class Corpus:
                  max_relative_frequency=1.,
                  min_absolute_frequency=0,
                  max_features=2000,
-                 preprocessor=None,
                  sample=None):
 
         self._source_file_path = source_file_path
@@ -31,7 +30,6 @@ class Corpus:
         self._vectorization = vectorization
         self._max_relative_frequency = max_relative_frequency
         self._min_absolute_frequency = min_absolute_frequency
-        self._preprocessor = preprocessor
 
         self.max_features = max_features
         self.data_frame = pandas.read_csv(source_file_path, sep='\t', encoding='utf-8')
@@ -39,15 +37,11 @@ class Corpus:
             self.data_frame = self.data_frame.sample(frac=0.8)
         self.data_frame.fillna(' ')
         self.size = self.data_frame.count(0)[0]
-        if preprocessor is not None:
-            for i in self.data_frame.index.tolist():
-                full_content = self.data_frame.iloc[i]['text']
-                sentence_end = re.compile('[.!?]')
-                sentences = sentence_end.split(full_content)
-                processed_sentences = []
-                for sentence in sentences:
-                    processed_sentences.append(preprocessor.process_sentence(sentence))
-                self.data_frame.loc[i, 'text'] = ' '.join(processed_sentences)
+        for i in self.data_frame.index.tolist():
+            full_content = self.data_frame.iloc[i]['text']
+            sentence_end = re.compile('[.!?]')
+            sentences = sentence_end.split(full_content)
+            self.data_frame.loc[i, 'text'] = ' '.join(sentences)
         stop_words = []
         if language is not None:
             stop_words = stopwords.words(language)

@@ -1,6 +1,5 @@
 # coding: utf-8
 import tom_lib.utils as ut
-from tom_lib.nlp.preprocessor import FrenchLemmatizer
 from tom_lib.nlp.topic_model import NonNegativeMatrixFactorization
 from tom_lib.structure.corpus import Corpus
 from tom_lib.visualization.visualization import Visualization
@@ -14,8 +13,7 @@ corpus = Corpus(source_file_path='input/egc.csv',
                 language='french',  # language for stop words
                 vectorization='tfidf',  # 'tf' (term-frequency) or 'tfidf' (term-frequency inverse-document-frequency)
                 max_relative_frequency=0.8,  # ignore words which relative frequency is > than max_relative_frequency
-                min_absolute_frequency=4,  # ignore words which absolute frequency is < than min_absolute_frequency
-                preprocessor=FrenchLemmatizer())  # pre-process documents
+                min_absolute_frequency=4)  # ignore words which absolute frequency is < than min_absolute_frequency
 print('corpus size:', corpus.size)
 print('vocabulary size:', len(corpus.vocabulary))
 print('Vector representation of document 0:\n', corpus.vector_for_document(0))

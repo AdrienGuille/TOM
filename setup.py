@@ -25,6 +25,6 @@ setup(
         'Topic :: Scientific/Engineering',
         'Topic :: Text Processing'
     ], 
-    requires=['nltk', 'scikit-learn', 'networkx', 'pandas', 'scipy', 'gensim', 'numpy'])
+    install_requires=['nltk', 'scikitlearn', 'networkx', 'pandas', 'scipy', 'gensim', 'numpy'])
 
 

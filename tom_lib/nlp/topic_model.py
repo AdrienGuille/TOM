@@ -139,37 +139,17 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
-    def top_documents(self, word_id):
-        vector = self.topic_word_matrix[:, word_id]
-        cx = vector.tocoo()
-        distribution = [0.0] * self.nb_topics
-        for topic_id, col, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
-            distribution[topic_id] = weight
-        return distribution
-
     def word_distribution_for_topic(self, topic_id):
-        vector = self.topic_word_matrix[topic_id]
-        cx = vector.tocoo()
-        weights = [0.0] * self.nb_topics
-        for row, topic_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
-            weights[topic_id] = weight
-        return weights
+        vector = self.topic_word_matrix[topic_id].toarray()
+        return vector[0]
 
     def topic_distribution_for_document(self, doc_id):
-        vector = self.document_topic_matrix[doc_id]
-        cx = vector.tocoo()
-        weights = [0.0] * self.nb_topics
-        for row, topic_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
-            weights[topic_id] = weight
-        return weights
+        vector = self.document_topic_matrix[doc_id].toarray()
+        return vector[0]
 
     def topic_distribution_for_word(self, word_id):
-        vector = self.topic_word_matrix[:, word_id]
-        cx = vector.tocoo()
-        distribution = [0.0] * self.nb_topics
-        for topic_id, col, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
-            distribution[topic_id] = weight
-        return distribution
+        vector = self.topic_word_matrix[:, word_id].toarray()
+        return vector.T[0]
 
     def topic_distribution_for_author(self, author_name):
         all_weights = []
@@ -179,14 +159,14 @@ class TopicModel(object):
         return output.mean(axis=0)
 
     def most_likely_topic_for_document(self, doc_id):
-        weights = self.topic_distribution_for_document(doc_id)
+        weights = list(self.topic_distribution_for_document(doc_id))
         return weights.index(max(weights))
 
     def topic_frequency(self, topic, date=None):
         return self.topics_frequency(date=date)[topic]
 
     def topics_frequency(self, date=None):
-        frequency = [0.0] * self.nb_topics
+        frequency = np.zeros(self.nb_topics)
         if date is None:
             ids = range(self.corpus.size)
         else:
@@ -217,28 +197,17 @@ class TopicModel(object):
                 topic_associations[topic_id] = documents
         return topic_associations
 
-    def similar_documents(self, doc_id, num_docs):
-        doc_weights = self.topic_distribution_for_document(doc_id)
-        similarities = []
-        for a_doc_id in range(self.corpus.size):
-            if a_doc_id != doc_id:
-                similarity = 1.0 - spatial.distance.cosine(doc_weights, self.topic_distribution_for_document(a_doc_id))
-                similarities.append((a_doc_id, similarity))
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        return similarities[:num_docs]
-
     def affiliation_repartition(self, topic_id):
         counts = {}
         doc_ids = self.documents_for_topic(topic_id)
         for i in doc_ids:
             affiliations = set(self.corpus.affiliation(i))
             for affiliation in affiliations:
-                if str(affiliation) not in ['nan', '@gmail.com', '@yahoo.fr']:
-                    if counts.get(affiliation):
-                        count = counts[affiliation] + 1
-                        counts[affiliation] = count
-                    else:
-                        counts[affiliation] = 1
+                if counts.get(affiliation) is not None:
+                    count = counts[affiliation] + 1
+                    counts[affiliation] = count
+                else:
+                    counts[affiliation] = 1
         tuples = []
         for affiliation, count in counts.items():
             tuples.append((affiliation, count))
@@ -255,8 +224,10 @@ class LatentDirichletAllocation(TopicModel):
             lda_model = LDA(n_topics=num_topics, learning_method='batch')
             topic_document = lda_model.fit_transform(self.corpus.sklearn_vector_space)
         elif algorithm == 'gibbs':
-            lda_model = lda.LDA(n_topics=num_topics)
+            lda_model = lda.LDA(n_topics=num_topics, n_iter=500)
             topic_document = lda_model.fit_transform(self.corpus.sklearn_vector_space)
+        else:
+            raise ValueError("algorithm must be either 'variational' or 'gibbs', got '%s'" % algorithm)
         self.topic_word_matrix = []
         self.document_topic_matrix = []
         vocabulary_size = len(self.corpus.vocabulary)

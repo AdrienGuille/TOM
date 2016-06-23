@@ -3,10 +3,9 @@ import itertools
 from abc import ABCMeta, abstractmethod
 import numpy as np
 import tom_lib.stats
-from gensim import models, matutils
-from scipy import spatial, sparse, cluster
+from scipy import spatial, cluster
 from scipy.sparse import coo_matrix
-from sklearn.decomposition import NMF
+from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
 
 from tom_lib.structure.corpus import Corpus
 
@@ -21,7 +20,7 @@ class TopicModel(object):
         self.corpus = corpus  # a Corpus object
         self.document_topic_matrix = None  # document x topic matrix
         self.topic_word_matrix = None  # topic x word matrix
-        self.nb_topics = None
+        self.nb_topics = None  # a scalar value > 1
 
     @abstractmethod
     def infer_topics(self, num_topics=10):
@@ -139,7 +138,7 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
-    def top_documents(self, word_id, num_docs):
+    def top_documents(self, word_id):
         vector = self.topic_word_matrix[:, word_id]
         cx = vector.tocoo()
         distribution = [0.0] * self.nb_topics
@@ -175,8 +174,8 @@ class TopicModel(object):
         all_weights = []
         for document_id in self.corpus.documents_by_author(author_name):
             all_weights.append(self.topic_distribution_for_document(document_id))
-        ouput = np.array(all_weights)
-        return ouput.mean(axis=0)
+        output = np.array(all_weights)
+        return output.mean(axis=0)
 
     def most_likely_topic_for_document(self, doc_id):
         weights = self.topic_distribution_for_document(doc_id)
@@ -248,61 +247,36 @@ class TopicModel(object):
 
 class LatentDirichletAllocation(TopicModel):
     def infer_topics(self, num_topics=10):
-        if self.corpus.gensim_vector_space is None:
-            self.corpus.gensim_vector_space = matutils.Sparse2Corpus(self.corpus.sklearn_vector_space,
-                                                                     documents_columns=False)
         self.nb_topics = num_topics
-        lda = models.LdaModel(corpus=self.corpus.gensim_vector_space,
-                              iterations=10000,
-                              num_topics=num_topics)
-        tmp_topic_word_matrix = list(lda.show_topics(num_topics=num_topics,
-                                                     num_words=len(self.corpus.vocabulary),
-                                                     formatted=False))
+        lda = LDA(n_topics=num_topics, learning_method='batch')
+        topic_document = lda.fit_transform(self.corpus.sklearn_vector_space)
+        self.topic_word_matrix = []
+        self.document_topic_matrix = []
+        vocabulary_size = len(self.corpus.vocabulary)
         row = []
         col = []
         data = []
-        for topic_id in range(self.nb_topics):
-            topic_description = tmp_topic_word_matrix[topic_id]
-            for word_id, probability in topic_description[1]:
-                row.append(topic_id)
-                col.append(int(word_id))
-                data.append(probability)
+        for topic_idx, topic in enumerate(lda.components_):
+            for i in range(vocabulary_size):
+                row.append(topic_idx)
+                col.append(i)
+                data.append(topic[i])
         self.topic_word_matrix = coo_matrix((data, (row, col)),
                                             shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
-        self.document_topic_matrix = sparse.csr_matrix(
-            np.transpose(matutils.corpus2dense(lda[self.corpus.gensim_vector_space],
-                                               num_topics,
-                                               self.corpus.size)))
-        self.corpus.gensim_vector_space = None
-
-
-class LatentSemanticAnalysis(TopicModel):
-    def infer_topics(self, num_topics=10):
-        if self.corpus.gensim_vector_space is None:
-            self.corpus.gensim_vector_space = matutils.Sparse2Corpus(self.corpus.sklearn_vector_space,
-                                                                     documents_columns=False)
-        self.nb_topics = num_topics
-        lsa = models.LsiModel(corpus=self.corpus.gensim_vector_space,
-                              id2word=self.corpus.vocabulary,
-                              num_topics=num_topics)
-        tmp_topic_word_matrix = list(lsa.show_topics(num_topics=num_topics,
-                                                     num_words=len(self.corpus.vocabulary),
-                                                     formatted=False))
         row = []
         col = []
         data = []
-        for topic_id in range(self.nb_topics):
-            topic_description = tmp_topic_word_matrix[topic_id]
-            for weight, word_id in topic_description:
-                row.append(topic_id)
-                col.append(word_id)
-                data.append(weight)
-        self.topic_word_matrix = coo_matrix((data, (row, col)),
-                                            shape=(self.nb_topics, len(self.corpus.vocabulary))).tocsr()
-        self.document_topic_matrix = np.transpose(matutils.corpus2dense(lsa[self.corpus.gensim_vector_space],
-                                                                        num_topics,
-                                                                        self.corpus.size))
-        self.corpus.gensim_vector_space = None
+        doc_count = 0
+        for doc in topic_document:
+            topic_count = 0
+            for topic_weight in doc:
+                row.append(doc_count)
+                col.append(topic_count)
+                data.append(topic_weight)
+                topic_count += 1
+            doc_count += 1
+        self.document_topic_matrix = coo_matrix((data, (row, col)),
+                                                shape=(self.corpus.size, self.nb_topics)).tocsr()
 
 
 class NonNegativeMatrixFactorization(TopicModel):

@@ -6,6 +6,7 @@ import tom_lib.stats
 from scipy import spatial, cluster
 from scipy.sparse import coo_matrix
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
+import lda
 
 from tom_lib.structure.corpus import Corpus
 
@@ -23,7 +24,7 @@ class TopicModel(object):
         self.nb_topics = None  # a scalar value > 1
 
     @abstractmethod
-    def infer_topics(self, num_topics=10):
+    def infer_topics(self, num_topics=10, **kwargs):
         pass
 
     def greene_metric(self, min_num_topics=10, step=5, max_num_topics=50, top_n_words=10, tao=10):
@@ -246,17 +247,23 @@ class TopicModel(object):
 
 
 class LatentDirichletAllocation(TopicModel):
-    def infer_topics(self, num_topics=10):
+    def infer_topics(self, num_topics=10, algorithm='variational', **kwargs):
         self.nb_topics = num_topics
-        lda = LDA(n_topics=num_topics, learning_method='batch')
-        topic_document = lda.fit_transform(self.corpus.sklearn_vector_space)
+        lda_model = None
+        topic_document = None
+        if algorithm == 'variational':
+            lda_model = LDA(n_topics=num_topics, learning_method='batch')
+            topic_document = lda_model.fit_transform(self.corpus.sklearn_vector_space)
+        elif algorithm == 'gibbs':
+            lda_model = lda.LDA(n_topics=num_topics)
+            topic_document = lda_model.fit_transform(self.corpus.sklearn_vector_space)
         self.topic_word_matrix = []
         self.document_topic_matrix = []
         vocabulary_size = len(self.corpus.vocabulary)
         row = []
         col = []
         data = []
-        for topic_idx, topic in enumerate(lda.components_):
+        for topic_idx, topic in enumerate(lda_model.components_):
             for i in range(vocabulary_size):
                 row.append(topic_idx)
                 col.append(i)
@@ -280,7 +287,7 @@ class LatentDirichletAllocation(TopicModel):
 
 
 class NonNegativeMatrixFactorization(TopicModel):
-    def infer_topics(self, num_topics=10):
+    def infer_topics(self, num_topics=10, **kwargs):
         self.nb_topics = num_topics
         nmf = NMF(n_components=num_topics)
         topic_document = nmf.fit_transform(self.corpus.sklearn_vector_space)

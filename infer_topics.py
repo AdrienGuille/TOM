@@ -1,6 +1,5 @@
 # coding: utf-8
 import tom_lib.utils as ut
-from tom_lib.nlp.preprocessor import FrenchLemmatizer
 from tom_lib.nlp.topic_model import NonNegativeMatrixFactorization, LatentDirichletAllocation
 from tom_lib.structure.corpus import Corpus
 from tom_lib.visualization.visualization import Visualization
@@ -21,7 +20,7 @@ print('vocabulary size:', len(corpus.vocabulary))
 print('Vector representation of document 0:\n', corpus.vector_for_document(0))
 
 # Instantiate a topic model
-topic_model = LatentDirichletAllocation(corpus)
+topic_model = NonNegativeMatrixFactorization(corpus)
 
 # Estimate the optimal number of topics
 # print('Estimating the number of topics...')
@@ -39,7 +38,7 @@ topic_model = LatentDirichletAllocation(corpus)
 
 # Infer topics
 print('Inferring topics...')
-topic_model.infer_topics(num_topics=15)
+topic_model.infer_topics(num_topics=15, algorithm='gibbs')
 # Save model on disk
 # ut.save_topic_model(topic_model, 'output/NMF_15topics.pickle')
 

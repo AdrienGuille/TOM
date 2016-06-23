@@ -1,4 +1,4 @@
-include README*
+pinclude README*
 include topic_model.py
 include topic_model_browser.py
 recursive-include browser *.*

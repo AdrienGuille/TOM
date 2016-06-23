@@ -15,7 +15,6 @@ app = Flask(__name__, static_folder='browser/static', template_folder='browser/t
 # Parameters
 max_tf = 0.8
 min_tf = 4
-preprocessor = None
 num_topics = 15
 vectorization = 'tfidf'
 
@@ -24,8 +23,7 @@ corpus = Corpus(source_file_path='input/egc_lemmatized.csv',
                 language='french',
                 vectorization=vectorization,
                 max_relative_frequency=max_tf,
-                min_absolute_frequency=min_tf,
-                preprocessor=preprocessor)
+                min_absolute_frequency=min_tf)
 print('corpus size:', corpus.size)
 print('vocabulary size:', len(corpus.vocabulary))
 
@@ -83,7 +81,6 @@ def index():
                            max_tf=max_tf,
                            min_tf=min_tf,
                            vectorization=vectorization,
-                           preprocessor=type(preprocessor).__name__,
                            num_topics=num_topics)
 
 

@@ -2,6 +2,27 @@
 
 TOM (TOpic Modeling) is a Python 3 library for topic modeling and browsing, licensed under the MIT license. Its objective is to allow for an efficient analysis of a text corpus from start to finish, via the discovery of latent topics. To this end, TOM features functions for preparing and vectorizing a text corpus. It also offers a common interface for two topic models (namely LDA using either variational inference or Gibbs sampling, and NMF using alternating least-square with a projected gradient method), and implements three state-of-the-art methods for estimating the optimal number of topics to model a corpus. What is more, TOM constructs an interactive Web-based browser that makes it easy to explore a topic model and the related corpus.
 
+## Features
+
+### Vector space modeling
+-  Feature selection based on word frequency
+-  Weighting
+    - tf
+    - tf-idf
+
+### Topic modeling
+- Latent Dirichlet Allocation 
+    - Standard variational Bayesian inference (Latent Dirichlet Allocation. Blei et al, 2003)
+    - Online variational Bayesian inference (Online learning for Latent Dirichlet Allocation. Hoffman et al, 2010)
+    - Collapsed Gibbs sampling (Finding scientific topics. Griffiths & Steyvers, 2004)
+- Non-negative Matrix Factorization (NMF)
+    - Alternating least-square with a projected gradient method (Projected gradient methods for non-negative matrix factorization. Lin, 2007)
+
+### Estimating the optimal number of topics
+- Stability analysis (How many topics? Stability analysis for topic models. Greene et al, 2014)
+- Spectral analysis (On finding the natural number of topics with latent dirichlet allocation: Some observations. Arun et al, 2010)
+- Consensus-based analysis (Metagenes and molecular pattern discovery using matrix factorization. Brunet et al, 2004)
+
 ## Installation
 
 We recommend you to install Anaconda (https://www.continuum.io) which will automatically install most of the required dependencies (i.e. pandas, numpy, scipy, scikit-learn, matplotlib, flask). You should then install the lda module (pip install lda).
@@ -21,7 +42,7 @@ pip install tom_lib
 
 We provide two sample programs, topic_model.py (which shows you how to load and prepare a corpus, estimate the optimal number of topics, infer the topic model and then manipulate it) and topic_model_browser.py (which shows you how to generate a topic model browser to explore a corpus), to help you get started using TOM.
 
-###Load and prepare a textual corpus
+### Load and prepare a textual corpus
 
 The following code snippet shows how to load a corpus of French documents and vectorize them using tf-idf with unigrams.
 
@@ -109,6 +130,6 @@ print('\nTop 10 most relevant words for topic 2:',
 ### Topic cloud
 ![](http://mediamining.univ-lyon2.fr/people/guille/tom_resources/topic_cloud.jpg)
 ### Topic details
-![](http://mediamining.univ-lyon2.fr/people/guille/tom_resources/topic_0.jpg)
+![](http://mediamining.univ-lyon2.fr/people/guille/tom_resources/topic_details.jpg)
 ### Document details
-![](http://mediamining.univ-lyon2.fr/people/guille/tom_resources/document_31.jpg)
+![](http://mediamining.univ-lyon2.fr/people/guille/tom_resources/document_details.jpg)

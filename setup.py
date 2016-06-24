@@ -16,6 +16,7 @@ setup(
     long_description=open('README.rst').read(),
     url='http://mediamining.univ-lyon2.fr/people/guille/tom.php',
     download_url='http://pypi.python.org/packages/source/t/tom_lib/tom_lib-%s.tar.gz' % version,
+    license = "MIT",
     classifiers=[
         'Programming Language :: Python',
         'Development Status :: 4 - Beta',

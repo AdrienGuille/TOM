@@ -32,11 +32,17 @@ Eventually, clone or download this repo and run the following command:
 python setup.py install
 ```
 
-Or, install it directly from PyPi:
+Or install it directly either from PyPi:
 
 ```
 pip install tom_lib
 ```
+
+or from Conda Cloud:
+```
+conda install -c psoriano tom_lib
+```
+
 
 ## Usage
 

@@ -128,13 +128,13 @@ class TopicModel(object):
             word_list = []
             for weighted_word in self.top_words(topic_id, num_words):
                 word_list.append(weighted_word[0])
-            topic_list.append((topic_id, frequency, word_list))
+            topic_list.append((topic_id, frequency[topic_id], word_list))
         if sort_by_freq == 'asc':
             topic_list.sort(key=lambda x: x[1], reverse=False)
         elif sort_by_freq == 'desc':
             topic_list.sort(key=lambda x: x[1], reverse=True)
         for topic_id, frequency, topic_desc in topic_list:
-            print('topic %i\t%f\t%s' % (topic_id, frequency[topic_id], ' '.join(topic_desc)))
+            print('topic %d\t%f\t%s' % (topic_id, frequency, ' '.join(topic_desc)))
 
     def top_words(self, topic_id, num_words):
         vector = self.topic_word_matrix[topic_id]

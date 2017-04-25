@@ -74,13 +74,13 @@ class TopicModel(object):
         kl_matrix = []
         for j in range(iterations):
             kl_list = []
-            l = np.array([sum(self.corpus.vector_for_document(doc_id)) for doc_id in range(self.corpus.size)])
+            l = np.array([sum(self.corpus.vector_for_document(doc_id)) for doc_id in range(self.corpus.size)])  # document length
             norm = np.linalg.norm(l)
             for i in range(min_num_topics, max_num_topics + 1):
                 self.infer_topics(i)
                 c_m1 = np.linalg.svd(self.topic_word_matrix.todense(), compute_uv=False)
                 c_m2 = l.dot(self.document_topic_matrix.todense())
-                c_m2 += 0.0001
+                c_m2 += 0.0001  # we need this to prevent components equal to zero
                 c_m2 /= norm
                 kl_list.append(tom_lib.stats.symmetric_kl(c_m1.tolist(), c_m2.tolist()[0]))
             kl_matrix.append(kl_list)

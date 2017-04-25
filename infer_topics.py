@@ -22,18 +22,18 @@ print('Vector representation of document 0:\n', corpus.vector_for_document(0))
 topic_model = NonNegativeMatrixFactorization(corpus)
 
 # Estimate the optimal number of topics
-print('Estimating the number of topics...')
-viz = Visualization(topic_model)
-viz.plot_greene_metric(min_num_topics=10,
-                       max_num_topics=11,
-                       tao=10, step=1,
-                       top_n_words=10)
-viz.plot_arun_metric(min_num_topics=5,
-                     max_num_topics=30,
-                     iterations=10)
-viz.plot_brunet_metric(min_num_topics=5,
-                       max_num_topics=30,
-                       iterations=10)
+# print('Estimating the number of topics...')
+# viz = Visualization(topic_model)
+# viz.plot_greene_metric(min_num_topics=10,
+#                        max_num_topics=11,
+#                        tao=10, step=1,
+#                        top_n_words=10)
+# viz.plot_arun_metric(min_num_topics=5,
+#                      max_num_topics=30,
+#                      iterations=10)
+# viz.plot_brunet_metric(min_num_topics=5,
+#                        max_num_topics=30,
+#                        iterations=10)
 
 # Infer topics
 print('Inferring topics...')

@@ -39,7 +39,8 @@ topic_model = NonNegativeMatrixFactorization(corpus)
 print('Inferring topics...')
 topic_model.infer_topics(num_topics=15)
 # Save model on disk
-ut.save_topic_model(topic_model, 'output/NMF_15topics.pickle')
+ut.save_topic_model(topic_model, 'NMF_EGC_15topics.pickle')
+# Load model from disk: topic_model = ut.load_topic_model('NMF_EGC_15topics.pickle')
 
 # Print results
 print('\nTopics:')

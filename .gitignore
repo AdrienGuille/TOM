@@ -12,3 +12,4 @@ misc/
 browser/static/data/
 
 *local.py
+NMF_EGC_15topics.pickle

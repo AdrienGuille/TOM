@@ -3,9 +3,14 @@ import tom_lib.utils as ut
 from tom_lib.nlp.topic_model import NonNegativeMatrixFactorization
 from tom_lib.structure.corpus import Corpus
 from tom_lib.visualization.visualization import Visualization
+import nltk
+
 
 __author__ = "Adrien Guille, Pavel Soriano"
 __email__ = "adrien.guille@univ-lyon2.fr"
+
+# Download stopwords from NLTK
+nltk.download('stopwords')
 
 # Load and prepare a corpus
 print('Load documents from CSV')
@@ -16,7 +21,6 @@ corpus = Corpus(source_file_path='input/egc_lemmatized.csv',
                 min_absolute_frequency=4)  # ignore words which absolute frequency is < than min_absolute_frequency
 print('corpus size:', corpus.size)
 print('vocabulary size:', len(corpus.vocabulary))
-print('Vector representation of document 0:\n', corpus.vector_for_document(0))
 
 # Instantiate a topic model
 topic_model = NonNegativeMatrixFactorization(corpus)

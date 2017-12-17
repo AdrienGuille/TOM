@@ -50,6 +50,15 @@ We provide two sample programs, topic_model.py (which shows you how to load and 
 
 ### Load and prepare a textual corpus
 
+A corpus is a TSV (tab separated values) file describing documents, formatted as follows: a document per line, with at least three columns, namely id (a number), title (a short text) and text (the full content of the document), e.g.:
+
+```
+id	title	text
+1	Document 1's title	This is the full content of document 1.
+2	Document 2's title	This is the full content of document 2.
+etc.
+```
+
 The following code snippet shows how to load a corpus of French documents and vectorize them using tf-idf with unigrams.
 
 ```

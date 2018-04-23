@@ -6,7 +6,7 @@ import tom_lib.stats
 from scipy import spatial, cluster
 from scipy.sparse import coo_matrix
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
-import lda
+#import lda
 
 from tom_lib.structure.corpus import Corpus
 
@@ -145,6 +145,15 @@ class TopicModel(object):
         weighted_words.sort(key=lambda x: x[1], reverse=True)
         return weighted_words[:num_words]
 
+    def top_documents(self, topic_id, num_docs):
+        vector = self.document_topic_matrix[:, topic_id]
+        cx = vector.tocoo()
+        weighted_docs = [()] * self.corpus.size
+        for doc_id, topic_id, weight in itertools.zip_longest(cx.row, cx.col, cx.data):
+            weighted_docs[doc_id] = (doc_id, weight)
+        weighted_docs.sort(key=lambda x: x[1], reverse=True)
+        return weighted_docs[:num_docs]
+
     def word_distribution_for_topic(self, topic_id):
         vector = self.topic_word_matrix[topic_id].toarray()
         return vector[0]
@@ -227,7 +236,7 @@ class LatentDirichletAllocation(TopicModel):
         lda_model = None
         topic_document = None
         if algorithm == 'variational':
-            lda_model = LDA(n_topics=num_topics, learning_method='batch')
+            lda_model = LDA(n_components=num_topics, learning_method='batch')
             topic_document = lda_model.fit_transform(self.corpus.sklearn_vector_space)
         elif algorithm == 'gibbs':
             lda_model = lda.LDA(n_topics=num_topics, n_iter=500)

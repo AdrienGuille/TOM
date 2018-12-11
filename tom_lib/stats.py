@@ -16,7 +16,7 @@ def myjaccard(r_i, r_j):
 
 
 def average_jaccard(r_i, r_j):
-    if not r_j or not r_j:
+    if not r_i or not r_j:
         raise Exception("Ranked lists should have at least one element.")
     if len(r_i) != len(r_j):
         raise Exception("Both ranked term list should have the same dimension.")
